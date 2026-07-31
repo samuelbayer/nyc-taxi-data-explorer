@@ -2,6 +2,7 @@ import './App.css'
 import * as Comlink from 'comlink'
 import { useState, useRef, useEffect } from 'react'
 import { type CalculatorWorker } from './workers/mathWorker'
+import { TablaParquet } from './tablaParquet'
 
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
       <input className='border border-gray-400 ' type='number' value={value} onChange={(e) => setValue(Number(e.target.value))} ></input>
       <p className="text-lg mb-4">Resultado del procesamiento de datos: {result}</p>
       <p className="text-lg">Este es un ejemplo de cómo usar un Web Worker con Comlink en una aplicación React.</p>
+      <TablaParquet />
     </main>
   )
 }
