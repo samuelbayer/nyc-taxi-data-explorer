@@ -1,53 +1,24 @@
-import React, { useState, useEffect, useRef } from 'react';
-import * as comlink from 'comlink';
-import type { DuckDBService } from './workers/db.worker.ts';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual'
+import useParquetQuery from './hooks/useParquetQuery';
+import type { TaxiTrip } from './hooks/useParquetQuery';
+import { Slider } from 'antd';
 
-
-// 1. Tipamos la estructura de los datos que esperamos del Parquet
-export interface TaxiTrip {
-    VendorID: number | null;
-    tpep_pickup_datetime: string | Date | null;
-    tpep_dropoff_datetime: string | Date | null;
-    passenger_count: number | null;
-    trip_distance: number | null;
-    RatecodeID: number | null;
-    store_and_fwd_flag: string | null;
-    PULocationID: number | null;
-    DOLocationID: number | null;
-    payment_type: number | null;
-    fare_amount: number | null;
-    extra: number | null;
-    mta_tax: number | null;
-    tip_amount: number | null;
-    tolls_amount: number | null;
-    improvement_surcharge: number | null;
-    total_amount: number | null;
-    congestion_surcharge: number | null;
-    Airport_fee: number | null;
-    cbd_congestion_fee: number | null;
-}
-
-
-// 2. Instanciamos el worker con soporte para módulos ES (compatible con Vite / Webpack 5)
-const worker = new Worker(new URL('./workers/db.worker.ts', import.meta.url), {
-    type: 'module',
-});
-
-
-const dbService = comlink.wrap<DuckDBService>(worker);
 
 
 export const TablaParquet: React.FC = () => {
-    // Estado con el tipo exacto que esperamos
-    const [trips, setTrips] = useState<TaxiTrip[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+
+    const { error, loading, trips } = useParquetQuery()
+
+    const [filteredTrips, setFilteredTrips] = useState<TaxiTrip[]>(trips);
+
+    const [filterAmount, setFilterAmount] = useState<number>(0)
+    const [rango, setRango] = useState([0, 100])
 
     const scrollRef = useRef<HTMLDivElement>(null)
 
     const virtualizer = useVirtualizer({
-        count: trips.length,
+        count: filteredTrips.length,
         estimateSize: () => 80,
         getScrollElement: () => scrollRef.current
     })
@@ -55,42 +26,28 @@ export const TablaParquet: React.FC = () => {
     const virtualItems = virtualizer.getVirtualItems()
 
 
-    useEffect(() => {
-        async function cargarDatos() {
-            try {
-                setLoading(true);
 
-
-                const parquetUrl = '/sample.parquet';
-                const parquetName = parquetUrl.split('/').pop() ?? 'sample.parquet';
-
-                // Pedimos los datos al worker. 'resultado' ya es un Array de objetos JSON tipado como Usuario[]
-                const resultado = (await dbService.queryParquet(
-                    parquetUrl,
-                    `SELECT * FROM ${parquetName} WHERE tip_amount > 0 LIMIT 5000`
-                )) as TaxiTrip[];
-
-                setTrips(resultado);
-            } catch (err) {
-                console.error('Error leyendo Parquet:', err);
-                setError('No se pudo cargar el archivo Parquet');
-            } finally {
-                setLoading(false);
+    const filterByAmount = useMemo(() => {
+        return (function filterByAmount(amount: number) {
+            if (amount <= 0) {
+                setFilteredTrips(trips)
+                return
             }
-        }
+            const filter = trips.filter(trip => trip.fare_amount! > amount)
+            setFilteredTrips(filter)
+            return
+        })
+    }, [trips])
 
-        cargarDatos();
-    }, []);
+    function filterByDistance(distance: number) {
+        if ()
+    }
 
 
     useEffect(() => {
-        async function verEsquema() {
-            // Te devolverá un array con los nombres de columnas y sus tipos de datos (VARCHAR, BIGINT, DOUBLE, etc.)
-            const columnas = await dbService.getParquetSchema('/sample.parquet');
-            console.log('Estructura del Parquet:', columnas);
-        }
-        verEsquema();
-    }, []);
+        filterByAmount(filterAmount)
+    }, [filterAmount, filterByAmount, trips])
+
 
     function checkTypePayment(type: number | null): string {
         if (type === 0) return 'Flex Fare trip'
@@ -107,7 +64,25 @@ export const TablaParquet: React.FC = () => {
 
     return (
         <>
-            <h2>Viajes con Propina ({trips.length})</h2>
+
+            <label htmlFor="mi-rango">Selecciona un número:</label>
+            <p>{filterAmount}</p>
+            <input
+                type="range"
+                id="mi-rango"
+                min="0"
+                max="10"
+                step="1"
+                value={filterAmount}
+                onChange={e => setFilterAmount(Number(e.target.value))}
+            />
+            <div style={{ width: 300, padding: 20 }}>
+                <Slider range
+                    value={rango}
+                    onChange={(valor) => setRango(valor)}
+                    max={1000} />
+            </div>
+            <h2>Viajes con Propina ({filteredTrips.length})</h2>
             <div className='hidden md:grid grid-cols-8 gap-4 w-[85dvw] px-7 my-2'>
                 <div>Distancia:</div>
                 <div>Tarifa:</div>
@@ -124,7 +99,7 @@ export const TablaParquet: React.FC = () => {
                 <div className='relative w-full' style={{ height: `${virtualizer.getTotalSize()}px` }}>
                     {virtualItems.map((vItem) => {
 
-                        const trip = trips[vItem.index]
+                        const trip = filteredTrips[vItem.index]
                         const pickUpdate = new Date(Number(trip.tpep_pickup_datetime))
                         const dropOffDate = new Date(Number(trip.tpep_dropoff_datetime))
                         const durationOfTrip = dropOffDate.getTime() - pickUpdate.getTime()

@@ -68,9 +68,7 @@ export const duckDBService = {
 
 async getParquetSchema(relativePath: string) {
   const fileName = relativePath.split('/').pop() ?? 'file.parquet';
-  return this.queryParquet(relativePath, `SELECT
-  approx_quantile(total_amount, 0.01) AS percentil_1,
-  approx_quantile(total_amount, 0.99) AS percentil_99 FROM '${fileName}'`);
+  return this.queryParquet(relativePath, `SELECT COUNT(*) AS total FROM '${fileName}'`);
 }
 };
 
