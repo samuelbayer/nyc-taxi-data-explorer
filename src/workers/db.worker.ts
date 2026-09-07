@@ -4,12 +4,15 @@ import * as duckdb from '@duckdb/duckdb-wasm';
 let db: duckdb.AsyncDuckDB | null = null;
 let initPromise: Promise<void> | null = null;
 
+const loadedFiles = new Set<string>();
+
 export type QueryResultRow = Record<string, unknown>;
 
 export const duckDBService = {
   async init(): Promise<void> {
     if (db) return;
     if (initPromise) return initPromise;
+    
 
     initPromise = (async () => {
       const bundles = duckdb.getJsDelivrBundles();
@@ -45,18 +48,22 @@ export const duckDBService = {
     if (!activeDb) {
       throw new Error('DuckDB no se pudo inicializar');
     }
-
-    const conn = await activeDb.connect();
-    const fullUrl = new URL(relativePath, self.location.origin).href;
     const fileName = relativePath.split('/').pop() ?? 'file.parquet';
+    
+    if (!loadedFiles.has(fileName)) {
+      const fullUrl = new URL(relativePath, self.location.origin).href;
+      const response = await fetch(fullUrl);
+      if (!response.ok) {
+        throw new Error(`No se pudo cargar el archivo Parquet desde ${fullUrl}`);
+      }
 
-    const response = await fetch(fullUrl);
-    if (!response.ok) {
-      throw new Error(`No se pudo cargar el archivo Parquet desde ${fullUrl}`);
+      const arrayBuffer = await response.arrayBuffer();
+      await activeDb.registerFileBuffer(fileName, new Uint8Array(arrayBuffer));
+      loadedFiles.add(fileName); // Marcamos como cargado
     }
 
-    const arrayBuffer = await response.arrayBuffer();
-    await activeDb.registerFileBuffer(fileName, new Uint8Array(arrayBuffer));
+    const conn = await activeDb.connect();
+   
 
     const query = sqlQuery || `SELECT * FROM '${fileName}' LIMIT 100`;
 
@@ -66,9 +73,8 @@ export const duckDBService = {
     return result.toArray().map((row) => row.toJSON() as T);
   },
 
-async getParquetSchema(relativePath: string) {
-  const fileName = relativePath.split('/').pop() ?? 'file.parquet';
-  return this.queryParquet(relativePath, `SELECT COUNT(*) AS total FROM '${fileName}'`);
+async getParquetTableCount(relativePath: string) {
+  return this.queryParquet(relativePath, `SELECT COUNT(*) AS total FROM taxi`);
 }
 };
 

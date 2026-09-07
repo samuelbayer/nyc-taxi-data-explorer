@@ -1,52 +1,56 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual'
 import useParquetQuery from './hooks/useParquetQuery';
-import type { TaxiTrip } from './hooks/useParquetQuery';
 import { Slider } from 'antd';
+import rowSkeleton, { RowSkeleton } from './components/RowSkeleton'
 
 
 
 export const TablaParquet: React.FC = () => {
+    const [filters, setFilters] = useState({
+        fareAmount: 0,
+        milesDistance: [0, 100],
+    })
 
-    const { error, loading, trips } = useParquetQuery()
-
-    const [filteredTrips, setFilteredTrips] = useState<TaxiTrip[]>(trips);
-
-    const [filterAmount, setFilterAmount] = useState<number>(0)
-    const [rango, setRango] = useState([0, 100])
-
+    const { error, loading, trips, totalCount, indexRange, setIndexRange } = useParquetQuery() //minmax
+    const filteredTrips = useMemo(() => {
+        const filter = trips.tripsArr.filter(trip => {
+            if (trip.fare_amount! < filters.fareAmount) return false
+            if (trip.trip_distance! < filters.milesDistance[0] || trip.trip_distance! > filters.milesDistance[1]) return false
+            return true
+        })
+        return (filter)
+    }, [trips, filters])
     const scrollRef = useRef<HTMLDivElement>(null)
 
     const virtualizer = useVirtualizer({
-        count: filteredTrips.length,
+        count: totalCount,
         estimateSize: () => 80,
         getScrollElement: () => scrollRef.current
     })
 
     const virtualItems = virtualizer.getVirtualItems()
 
-
-
-    const filterByAmount = useMemo(() => {
-        return (function filterByAmount(amount: number) {
-            if (amount <= 0) {
-                setFilteredTrips(trips)
-                return
-            }
-            const filter = trips.filter(trip => trip.fare_amount! > amount)
-            setFilteredTrips(filter)
-            return
-        })
-    }, [trips])
-
-    function filterByDistance(distance: number) {
-        if ()
-    }
-
+    const firstIndex = virtualItems[0]?.index ?? 0;
+    const lastIndex = virtualItems[virtualItems.length - 1]?.index ?? 0;
 
     useEffect(() => {
-        filterByAmount(filterAmount)
-    }, [filterAmount, filterByAmount, trips])
+        if (virtualItems.length === 0) return;
+
+        const newFirstIndex = Math.max(0, firstIndex - 20)
+        const newLastIndex = lastIndex + 20
+
+        setIndexRange((prev) => {
+            const [prevMin, prevMax] = prev;
+            if (prevMin === newFirstIndex && prevMax === newLastIndex) return prev;
+            if (newFirstIndex >= prevMin && newLastIndex <= prevMax) return prev;
+            return [newFirstIndex, newLastIndex];
+        });
+    }, [
+        firstIndex,
+        lastIndex,
+        virtualItems.length, setIndexRange
+    ]);
 
 
     function checkTypePayment(type: number | null): string {
@@ -59,28 +63,28 @@ export const TablaParquet: React.FC = () => {
         return 'Voided trip'
     }
 
-    if (loading) return <div>Cargando datos desde Parquet con DuckDB...</div>;
+    if (loading && trips.tripsArr.length === 0) return <div>Cargando datos desde Parquet con DuckDB...</div>;
     if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
     return (
         <>
 
-            <label htmlFor="mi-rango">Selecciona un número:</label>
-            <p>{filterAmount}</p>
+            <label htmlFor="mi-rango">Filtro de minimo de pago:</label>
+            <p>${filters.fareAmount}</p>
             <input
                 type="range"
                 id="mi-rango"
                 min="0"
                 max="10"
                 step="1"
-                value={filterAmount}
-                onChange={e => setFilterAmount(Number(e.target.value))}
+                value={filters.fareAmount}
+                onChange={e => setFilters(prev => ({ ...prev, fareAmount: Number(e.target.value) }))}
             />
             <div style={{ width: 300, padding: 20 }}>
                 <Slider range
-                    value={rango}
-                    onChange={(valor) => setRango(valor)}
-                    max={1000} />
+                    value={filters.milesDistance}
+                    onChange={(valor) => setFilters(prev => ({ ...prev, milesDistance: valor }))}
+                    max={100} />
             </div>
             <h2>Viajes con Propina ({filteredTrips.length})</h2>
             <div className='hidden md:grid grid-cols-8 gap-4 w-[85dvw] px-7 my-2'>
@@ -99,15 +103,22 @@ export const TablaParquet: React.FC = () => {
                 <div className='relative w-full' style={{ height: `${virtualizer.getTotalSize()}px` }}>
                     {virtualItems.map((vItem) => {
 
-                        const trip = filteredTrips[vItem.index]
-                        const pickUpdate = new Date(Number(trip.tpep_pickup_datetime))
-                        const dropOffDate = new Date(Number(trip.tpep_dropoff_datetime))
+                        const trip = trips.tripsArr[vItem.index - trips.range[0]]
+
+                        if (!trip) {
+                            return (
+                                <RowSkeleton index={vItem.index} columns={trip} className={' transform: `translateY(${vItem.start}px)`, height: `${vItem.size}px` '} />
+
+                            )
+                        }
+                        const pickUpdate = new Date(Number(typeof trip.tpep_pickup_datetime === 'number' ? trip.tpep_pickup_datetime : 0))
+                        const dropOffDate = new Date(Number(typeof trip.tpep_dropoff_datetime === 'number' ? trip.tpep_dropoff_datetime : 0))
                         const durationOfTrip = dropOffDate.getTime() - pickUpdate.getTime()
                         const minutosTotales = durationOfTrip / (1000 * 60)
                         const hour = Math.floor(durationOfTrip / (1000 * 60 * 60))
                         const minutos = Math.floor(minutosTotales % 60)
                         return (
-                            <div className='absolute top-0 left-0 w-full' style={{ transform: `translateY(${vItem.start}px)`, height: `${vItem.size}` }} key={vItem.key} data-index={vItem.index}>
+                            <div className='absolute top-0 left-0 w-full' style={{ transform: `translateY(${vItem.start}px)`, height: `${vItem.size}px` }} key={vItem.key} data-index={vItem.index}>
                                 <div key={vItem.key} data-index={vItem.index} className="p-3 md:py-2 md:px-4 md:grid grid-cols-8 gap-4 ">
                                     <p>{trip.trip_distance} millas</p>
                                     <p>${trip.fare_amount}</p>

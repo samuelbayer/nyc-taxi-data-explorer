@@ -1,6 +1,6 @@
 import * as comlink from 'comlink';
 import type { DuckDBService } from '../workers/db.worker.ts';
-import { useRef, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export interface TaxiTrip {
     VendorID: number | null;
@@ -33,40 +33,69 @@ const worker = new Worker(new URL('../workers/db.worker.ts', import.meta.url), {
 
 
 const dbService = comlink.wrap<DuckDBService>(worker);
+const parquetUrl = '/sample.parquet';
+const parquetName = parquetUrl.split('/').pop() ?? 'sample.parquet';
 
-dbService.init();
+const viewPromise = dbService.init().then(() =>
+    dbService.queryParquet(
+        parquetUrl,
+        `CREATE TABLE taxi AS
+SELECT
+  ROW_NUMBER() OVER () AS rn,
+  trip_distance,
+  fare_amount,
+  tip_amount,
+  tpep_pickup_datetime,
+  tpep_dropoff_datetime,
+  passenger_count,
+  payment_type
+FROM '${parquetName}';`
+    )
+);
 
 
-export default function useParquetQuery(): { trips: TaxiTrip[], loading: boolean, error: string | null } {
 
-    const [trips, setTrips] = useState<TaxiTrip[]>([]);
+
+export default function useParquetQuery(): { trips: { tripsArr: TaxiTrip[], range: number[] }, loading: boolean, error: string | null, totalCount: number, indexRange: number[], setIndexRange: React.Dispatch<React.SetStateAction<number[]>> } {
+    const [indexRange, setIndexRange] = useState([0, 50])
+    const [trips, setTrips] = useState<{ tripsArr: TaxiTrip[], range: number[] }>({ tripsArr: [], range: [0, 50] });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [totalCount, setTotalCount] = useState<number>(0)
+
+    useEffect(() => {
+        viewPromise.then(async () => {
+            const count = await dbService.getParquetTableCount(parquetUrl)
+            setTotalCount(Number(count[0].total))
+        });
+    }, [])
 
     useEffect(() => {
 
         async function cargarDatos() {
             try {
+                await new Promise(r => setTimeout(r, 1000))
                 setLoading(true);
 
-
-                const parquetUrl = '/sample.parquet';
-                const parquetName = parquetUrl.split('/').pop() ?? 'sample.parquet';
+                await viewPromise
 
                 const inicio = performance.now();
+
+                const rnInicio = Math.max(1, (indexRange[0] + 1))
+                const rnFin = indexRange[1] + 1
+                console.log(`Consultando filas desde ${rnInicio} hasta ${rnFin}`)
 
                 // Pedimos los datos al worker. 'resultado' ya es un Array de objetos JSON tipado como Usuario[]
                 const resultado = (await dbService.queryParquet(
                     parquetUrl,
-                    `SELECT * FROM '${parquetName}' WHERE tip_amount > 0 LIMIT 1000`
+                    `SELECT * FROM taxi WHERE rn >= ${rnInicio} AND rn <= ${rnFin} ORDER BY rn`
                 )) as TaxiTrip[];
 
                 const fin = performance.now();
                 const tiempoTotal = (fin - inicio).toFixed(2);
 
                 console.log(`⚡ Consulta ejecutada en: ${tiempoTotal} ms`);
-
-                setTrips(resultado);
+                setTrips({ tripsArr: resultado, range: [rnInicio - 1, rnFin - 1] });
             } catch (err) {
                 console.error('Error leyendo Parquet:', err);
                 setError('No se pudo cargar el archivo Parquet');
@@ -76,14 +105,11 @@ export default function useParquetQuery(): { trips: TaxiTrip[], loading: boolean
         }
 
         cargarDatos();
-        dbService.getParquetSchema('/sample.parquet').then(schema => {
-            console.log('Esquema del Parquet:', schema);
-        })
 
-    }, []);
+    }, [indexRange]);
 
 
-    return { trips, loading, error }
+    return { trips, loading, error, totalCount, indexRange, setIndexRange }
 
 
 }
