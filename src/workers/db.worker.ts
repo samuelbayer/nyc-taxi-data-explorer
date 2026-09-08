@@ -75,6 +75,37 @@ export const duckDBService = {
 
 async getParquetTableCount(relativePath: string) {
   return this.queryParquet(relativePath, `SELECT COUNT(*) AS total FROM taxi`);
+},
+
+// TEMPORAL — diagnóstico de row groups. Borrar cuando tengamos el dato.
+async getParquetStats(relativePath: string) {
+  const fileName = relativePath.split('/').pop() ?? 'file.parquet';
+  const toNum = (v: unknown) => Number(v ?? 0);
+
+  const [file] = await this.queryParquet<Record<string, unknown>>(
+    relativePath,
+    `SELECT num_rows, num_row_groups FROM parquet_file_metadata('${fileName}')`
+  );
+
+  const groups = await this.queryParquet<Record<string, unknown>>(
+    relativePath,
+    `SELECT row_group_id,
+            MAX(row_group_num_rows) AS n_rows,
+            SUM(total_compressed_size) AS n_bytes
+     FROM parquet_metadata('${fileName}')
+     GROUP BY row_group_id
+     ORDER BY row_group_id`
+  );
+
+  return {
+    numRows: toNum(file?.num_rows),
+    numRowGroups: toNum(file?.num_row_groups),
+    groups: groups.map((g) => ({
+      id: toNum(g.row_group_id),
+      rows: toNum(g.n_rows),
+      bytes: toNum(g.n_bytes),
+    })),
+  };
 }
 };
 

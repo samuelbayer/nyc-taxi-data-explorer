@@ -63,6 +63,21 @@ export default function useParquetQuery(): { trips: { tripsArr: TaxiTrip[], rang
     const [error, setError] = useState<string | null>(null);
     const [totalCount, setTotalCount] = useState<number>(0)
 
+    // TEMPORAL — diagnóstico de row groups. Borrar cuando tengamos el dato.
+    useEffect(() => {
+        viewPromise
+            .then(() => dbService.getParquetStats(parquetUrl))
+            .then((s) => {
+                console.log(
+                    `PARQUET_STATS rowGroups=${s.numRowGroups} rows=${s.numRows} ` +
+                    s.groups
+                        .map((g) => `#${g.id}:${g.rows}f/${(g.bytes / 1024 / 1024).toFixed(2)}MB`)
+                        .join(' ')
+                );
+            })
+            .catch((e) => console.error('PARQUET_STATS_ERROR', String(e)));
+    }, []);
+
     useEffect(() => {
         viewPromise.then(async () => {
             const count = await dbService.getParquetTableCount(parquetUrl)
@@ -95,6 +110,7 @@ export default function useParquetQuery(): { trips: { tripsArr: TaxiTrip[], rang
                 const tiempoTotal = (fin - inicio).toFixed(2);
 
                 console.log(`⚡ Consulta ejecutada en: ${tiempoTotal} ms`);
+
                 setTrips({ tripsArr: resultado, range: [rnInicio - 1, rnFin - 1] });
             } catch (err) {
                 console.error('Error leyendo Parquet:', err);

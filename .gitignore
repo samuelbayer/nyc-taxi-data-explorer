@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Datos: los .parquet no se suben al repo (pesan demasiado)
+public/*.parquet

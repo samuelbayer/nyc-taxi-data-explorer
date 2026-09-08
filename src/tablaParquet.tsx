@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual'
 import useParquetQuery from './hooks/useParquetQuery';
 import { Slider } from 'antd';
-import rowSkeleton, { RowSkeleton } from './components/RowSkeleton'
+import { RowSkeleton } from './components/RowSkeleton'
 
 
 
@@ -90,7 +90,7 @@ export const TablaParquet: React.FC = () => {
 
             <div ref={scrollRef} className='h-[85dvh] w-[85dvw] overflow-auto'>
 
-                <div className='hidden bg-slate-950 z-10 sticky top-0 md:grid grid-cols-8 gap-4 px-3 md:px-4 py-3 my-2'>
+                <div className='hidden will-change-transform bg-slate-950 z-10 sticky top-0 md:grid grid-cols-8 gap-4 px-3 md:px-4 py-3 border-slate-950 border-8'>
                     <div>Distancia:</div>
                     <div>Tarifa:</div>
                     <div>Propina:</div>
