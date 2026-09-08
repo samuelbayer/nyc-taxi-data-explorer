@@ -87,28 +87,31 @@ export const TablaParquet: React.FC = () => {
                     max={100} />
             </div>
             <h2>Viajes con Propina ({filteredTrips.length})</h2>
-            <div className='hidden md:grid grid-cols-8 gap-4 w-[85dvw] px-7 my-2'>
-                <div>Distancia:</div>
-                <div>Tarifa:</div>
-                <div>Propina:</div>
-                <div>Tiempo:</div>
-                <div>Hora de recogida</div>
-                <div>Hora de llegada:</div>
-                <div>Pasajeros:</div>
-                <div>Tipo de pago:</div>
-            </div>
-            <div ref={scrollRef} className='scrollbar-gutter-both h-[85dvh] w-[85dvw] overflow-auto'>
 
+            <div ref={scrollRef} className='h-[85dvh] w-[85dvw] overflow-auto'>
+
+                <div className='hidden bg-slate-950 z-10 sticky top-0 md:grid grid-cols-8 gap-4 px-3 md:px-4 py-3 my-2'>
+                    <div>Distancia:</div>
+                    <div>Tarifa:</div>
+                    <div>Propina:</div>
+                    <div>Tiempo:</div>
+                    <div>Hora de recogida</div>
+                    <div>Hora de llegada:</div>
+                    <div>Pasajeros:</div>
+                    <div>Tipo de pago:</div>
+                </div>
 
                 <div className='relative w-full' style={{ height: `${virtualizer.getTotalSize()}px` }}>
+
                     {virtualItems.map((vItem) => {
 
                         const trip = trips.tripsArr[vItem.index - trips.range[0]]
 
                         if (!trip) {
                             return (
-                                <RowSkeleton index={vItem.index} columns={trip} className={' transform: `translateY(${vItem.start}px)`, height: `${vItem.size}px` '} />
-
+                                <div className='absolute top-0 left-0 w-full border-b border-slate-900' style={{ transform: `translateY(${vItem.start}px)`, height: `${vItem.size}px` }} key={vItem.key} data-index={vItem.index}>
+                                    <RowSkeleton index={vItem.index} />
+                                </div>
                             )
                         }
                         const pickUpdate = new Date(Number(typeof trip.tpep_pickup_datetime === 'number' ? trip.tpep_pickup_datetime : 0))
@@ -118,8 +121,8 @@ export const TablaParquet: React.FC = () => {
                         const hour = Math.floor(durationOfTrip / (1000 * 60 * 60))
                         const minutos = Math.floor(minutosTotales % 60)
                         return (
-                            <div className='absolute top-0 left-0 w-full' style={{ transform: `translateY(${vItem.start}px)`, height: `${vItem.size}px` }} key={vItem.key} data-index={vItem.index}>
-                                <div key={vItem.key} data-index={vItem.index} className="p-3 md:py-2 md:px-4 md:grid grid-cols-8 gap-4 ">
+                            <div className='absolute flex top-0 left-0 w-full border-b border-slate-900' style={{ transform: `translateY(${vItem.start}px)`, height: `${vItem.size}px` }} key={vItem.key} data-index={vItem.index}>
+                                <div key={vItem.key} data-index={vItem.index} className="w-full items-center p-3 md:py-2 md:px-4 md:grid grid-cols-8 gap-4  ">
                                     <p>{trip.trip_distance} millas</p>
                                     <p>${trip.fare_amount}</p>
                                     <p>${trip.tip_amount}</p>
