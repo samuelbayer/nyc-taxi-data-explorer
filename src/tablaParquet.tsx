@@ -15,8 +15,8 @@ export const TablaParquet: React.FC = () => {
     const { error, loading, trips, totalCount, indexRange, setIndexRange } = useParquetQuery() //minmax
     const filteredTrips = useMemo(() => {
         const filter = trips.tripsArr.filter(trip => {
-            if (trip.fare_amount! < filters.fareAmount) return false
-            if (trip.trip_distance! < filters.milesDistance[0] || trip.trip_distance! > filters.milesDistance[1]) return false
+            if ((trip.fare_cents / 100)! < filters.fareAmount) return false
+            if ((trip.fare_cents / 100)! < filters.milesDistance[0] || (trip.fare_cents / 100) > filters.milesDistance[1]) return false
             return true
         })
         return (filter)
@@ -114,22 +114,21 @@ export const TablaParquet: React.FC = () => {
                                 </div>
                             )
                         }
-                        const pickUpdate = new Date(Number(typeof trip.tpep_pickup_datetime === 'number' ? trip.tpep_pickup_datetime : 0))
-                        const dropOffDate = new Date(Number(typeof trip.tpep_dropoff_datetime === 'number' ? trip.tpep_dropoff_datetime : 0))
-                        const durationOfTrip = dropOffDate.getTime() - pickUpdate.getTime()
-                        const minutosTotales = durationOfTrip / (1000 * 60)
-                        const hour = Math.floor(durationOfTrip / (1000 * 60 * 60))
-                        const minutos = Math.floor(minutosTotales % 60)
+
+                        const hour = Math.floor((trip.duration_s / 60 / 60))
+                        const minutos = Math.floor((trip.duration_s % 3600) / 60)
+                        const pickUpDate = new Date(trip.pickup)
+                        const dropOffDate = new Date((trip.pickup) + trip.duration_s * 1000)
                         return (
                             <div className='absolute flex top-0 left-0 w-full border-b border-slate-900' style={{ transform: `translateY(${vItem.start}px)`, height: `${vItem.size}px` }} key={vItem.key} data-index={vItem.index}>
-                                <div key={vItem.key} data-index={vItem.index} className="w-full items-center p-3 md:py-2 md:px-4 md:grid grid-cols-8 gap-4  ">
-                                    <p>{trip.trip_distance} millas</p>
-                                    <p>${trip.fare_amount}</p>
-                                    <p>${trip.tip_amount}</p>
+                                <div className="w-full items-center p-3 md:py-2 md:px-4 md:grid grid-cols-8 gap-4  ">
+                                    <p>{trip.distance_cent / 100} millas</p>
+                                    <p>${(trip.fare_cents / 100).toFixed(2)}</p>
+                                    <p>${trip.tip_cents / 100}</p>
                                     <p>{hour < 1 ? `${minutos} minutos` : `${hour} horas y ${minutos} minutos `}</p>
-                                    <p>{pickUpdate.toLocaleString()}</p>
+                                    <p>{pickUpDate.toLocaleString()}</p>
                                     <p>{dropOffDate.toLocaleString()}</p>
-                                    <p>{trip.passenger_count}</p>
+                                    <p>{trip.passengers}</p>
                                     <p>{checkTypePayment(Number(trip.payment_type))}</p>
                                 </div>
                             </div>

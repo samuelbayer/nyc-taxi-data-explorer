@@ -74,7 +74,7 @@ export const duckDBService = {
   },
 
 async getParquetTableCount(relativePath: string) {
-  return this.queryParquet(relativePath, `SELECT COUNT(*) AS total FROM taxi`);
+  return this.queryParquet(relativePath, `SELECT COUNT(*) AS total FROM 'trips3.parquet'`);
 },
 
 // TEMPORAL — diagnóstico de row groups. Borrar cuando tengamos el dato.

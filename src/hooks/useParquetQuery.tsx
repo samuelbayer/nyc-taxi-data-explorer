@@ -3,26 +3,13 @@ import type { DuckDBService } from '../workers/db.worker.ts';
 import { useEffect, useState } from 'react';
 
 export interface TaxiTrip {
-    VendorID: number | null;
-    tpep_pickup_datetime: string | Date | null;
-    tpep_dropoff_datetime: string | Date | null;
-    passenger_count: number | null;
-    trip_distance: number | null;
-    RatecodeID: number | null;
-    store_and_fwd_flag: string | null;
-    PULocationID: number | null;
-    DOLocationID: number | null;
-    payment_type: number | null;
-    fare_amount: number | null;
-    extra: number | null;
-    mta_tax: number | null;
-    tip_amount: number | null;
-    tolls_amount: number | null;
-    improvement_surcharge: number | null;
-    total_amount: number | null;
-    congestion_surcharge: number | null;
-    Airport_fee: number | null;
-    cbd_congestion_fee: number | null;
+    pickup: number;
+    duration_s: number;
+    distance_cent: number;
+    fare_cents: number;
+    tip_cents: number;
+    passengers: number;
+    payment_type: number;
 }
 
 
@@ -33,26 +20,8 @@ const worker = new Worker(new URL('../workers/db.worker.ts', import.meta.url), {
 
 
 const dbService = comlink.wrap<DuckDBService>(worker);
-const parquetUrl = '/sample.parquet';
-const parquetName = parquetUrl.split('/').pop() ?? 'sample.parquet';
-
-const viewPromise = dbService.init().then(() =>
-    dbService.queryParquet(
-        parquetUrl,
-        `CREATE TABLE taxi AS
-SELECT
-  ROW_NUMBER() OVER () AS rn,
-  trip_distance,
-  fare_amount,
-  tip_amount,
-  tpep_pickup_datetime,
-  tpep_dropoff_datetime,
-  passenger_count,
-  payment_type
-FROM '${parquetName}';`
-    )
-);
-
+const parquetUrl = '/trips3.parquet';
+const parquetName = parquetUrl.split('/').pop() ?? 'trips3.parquet';
 
 
 
@@ -63,26 +32,13 @@ export default function useParquetQuery(): { trips: { tripsArr: TaxiTrip[], rang
     const [error, setError] = useState<string | null>(null);
     const [totalCount, setTotalCount] = useState<number>(0)
 
-    // TEMPORAL — diagnóstico de row groups. Borrar cuando tengamos el dato.
-    useEffect(() => {
-        viewPromise
-            .then(() => dbService.getParquetStats(parquetUrl))
-            .then((s) => {
-                console.log(
-                    `PARQUET_STATS rowGroups=${s.numRowGroups} rows=${s.numRows} ` +
-                    s.groups
-                        .map((g) => `#${g.id}:${g.rows}f/${(g.bytes / 1024 / 1024).toFixed(2)}MB`)
-                        .join(' ')
-                );
-            })
-            .catch((e) => console.error('PARQUET_STATS_ERROR', String(e)));
-    }, []);
+    const getParquetTableCount = async () => {
+        const count = await dbService.getParquetTableCount(parquetUrl)
+        setTotalCount(Number(count[0].total))
+    }
 
     useEffect(() => {
-        viewPromise.then(async () => {
-            const count = await dbService.getParquetTableCount(parquetUrl)
-            setTotalCount(Number(count[0].total))
-        });
+        getParquetTableCount()
     }, [])
 
     useEffect(() => {
@@ -92,18 +48,15 @@ export default function useParquetQuery(): { trips: { tripsArr: TaxiTrip[], rang
                 await new Promise(r => setTimeout(r, 1000))
                 setLoading(true);
 
-                await viewPromise
 
                 const inicio = performance.now();
 
-                const rnInicio = Math.max(1, (indexRange[0] + 1))
-                const rnFin = indexRange[1] + 1
-                console.log(`Consultando filas desde ${rnInicio} hasta ${rnFin}`)
+                console.log(`Consultando filas desde ${indexRange[0]} hasta ${indexRange[1]}`)
 
                 // Pedimos los datos al worker. 'resultado' ya es un Array de objetos JSON tipado como Usuario[]
                 const resultado = (await dbService.queryParquet(
                     parquetUrl,
-                    `SELECT * FROM taxi WHERE rn >= ${rnInicio} AND rn <= ${rnFin} ORDER BY rn`
+                    `SELECT * FROM 'trips3.parquet' LIMIT ${indexRange[1] - indexRange[0] + 1} OFFSET ${indexRange[0]}`
                 )) as TaxiTrip[];
 
                 const fin = performance.now();
@@ -111,7 +64,8 @@ export default function useParquetQuery(): { trips: { tripsArr: TaxiTrip[], rang
 
                 console.log(`⚡ Consulta ejecutada en: ${tiempoTotal} ms`);
 
-                setTrips({ tripsArr: resultado, range: [rnInicio - 1, rnFin - 1] });
+                setTrips({ tripsArr: resultado, range: indexRange });
+
             } catch (err) {
                 console.error('Error leyendo Parquet:', err);
                 setError('No se pudo cargar el archivo Parquet');
