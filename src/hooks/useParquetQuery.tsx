@@ -21,7 +21,6 @@ const worker = new Worker(new URL('../workers/db.worker.ts', import.meta.url), {
 
 const dbService = comlink.wrap<DuckDBService>(worker);
 const parquetUrl = '/trips3.parquet';
-const parquetName = parquetUrl.split('/').pop() ?? 'trips3.parquet';
 
 
 
@@ -45,7 +44,6 @@ export default function useParquetQuery(): { trips: { tripsArr: TaxiTrip[], rang
 
         async function cargarDatos() {
             try {
-                await new Promise(r => setTimeout(r, 1000))
                 setLoading(true);
 
 

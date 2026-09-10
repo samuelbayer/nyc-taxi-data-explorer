@@ -6,13 +6,15 @@ import { RowSkeleton } from './components/RowSkeleton'
 
 
 
+
+
 export const TablaParquet: React.FC = () => {
     const [filters, setFilters] = useState({
         fareAmount: 0,
         milesDistance: [0, 100],
     })
 
-    const { error, loading, trips, totalCount, indexRange, setIndexRange } = useParquetQuery() //minmax
+    const { error, loading, trips, totalCount, setIndexRange } = useParquetQuery() //minmax
     const filteredTrips = useMemo(() => {
         const filter = trips.tripsArr.filter(trip => {
             if ((trip.fare_cents / 100)! < filters.fareAmount) return false

@@ -4,7 +4,7 @@ import * as duckdb from '@duckdb/duckdb-wasm';
 let db: duckdb.AsyncDuckDB | null = null;
 let initPromise: Promise<void> | null = null;
 
-const loadedFiles = new Set<string>();
+const loadingFiles = new Map<string, Promise<void>>();
 
 export type QueryResultRow = Record<string, unknown>;
 
@@ -49,9 +49,11 @@ export const duckDBService = {
       throw new Error('DuckDB no se pudo inicializar');
     }
     const fileName = relativePath.split('/').pop() ?? 'file.parquet';
-    
-    if (!loadedFiles.has(fileName)) {
-      const fullUrl = new URL(relativePath, self.location.origin).href;
+    let cargando = loadingFiles.get(fileName);
+
+    if (!cargando) {
+      cargando = (async () => {
+         const fullUrl = new URL(relativePath, self.location.origin).href;
       const response = await fetch(fullUrl);
       if (!response.ok) {
         throw new Error(`No se pudo cargar el archivo Parquet desde ${fullUrl}`);
@@ -59,8 +61,13 @@ export const duckDBService = {
 
       const arrayBuffer = await response.arrayBuffer();
       await activeDb.registerFileBuffer(fileName, new Uint8Array(arrayBuffer));
-      loadedFiles.add(fileName); // Marcamos como cargado
+      })()
+     
+      loadingFiles.set(fileName, cargando); // Marcamos como cargado
+      cargando.catch(() => loadingFiles.delete(fileName));
     }
+
+    await cargando
 
     const conn = await activeDb.connect();
    
