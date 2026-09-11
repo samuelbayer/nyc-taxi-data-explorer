@@ -25,8 +25,8 @@ const parquetUrl = '/trips3.parquet';
 
 
 export default function useParquetQuery(): { trips: { tripsArr: TaxiTrip[], range: number[] }, loading: boolean, error: string | null, totalCount: number, indexRange: number[], setIndexRange: React.Dispatch<React.SetStateAction<number[]>> } {
-    const [indexRange, setIndexRange] = useState([0, 50])
-    const [trips, setTrips] = useState<{ tripsArr: TaxiTrip[], range: number[] }>({ tripsArr: [], range: [0, 50] });
+    const [indexRange, setIndexRange] = useState([0, 499])
+    const [trips, setTrips] = useState<{ tripsArr: TaxiTrip[], range: number[] }>({ tripsArr: [], range: [0, 499] });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [totalCount, setTotalCount] = useState<number>(0)

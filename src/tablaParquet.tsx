@@ -4,7 +4,7 @@ import useParquetQuery from './hooks/useParquetQuery';
 import { Slider } from 'antd';
 import { RowSkeleton } from './components/RowSkeleton'
 
-
+const BLOQUE = 500
 
 
 
@@ -39,14 +39,13 @@ export const TablaParquet: React.FC = () => {
     useEffect(() => {
         if (virtualItems.length === 0) return;
 
-        const newFirstIndex = Math.max(0, firstIndex - 20)
-        const newLastIndex = lastIndex + 20
+        const start = Math.floor(firstIndex / BLOQUE) * BLOQUE
+        const end = Math.ceil((lastIndex + 1) / BLOQUE) * BLOQUE - 1
 
         setIndexRange((prev) => {
             const [prevMin, prevMax] = prev;
-            if (prevMin === newFirstIndex && prevMax === newLastIndex) return prev;
-            if (newFirstIndex >= prevMin && newLastIndex <= prevMax) return prev;
-            return [newFirstIndex, newLastIndex];
+            if (prevMin === start && prevMax === end) return prev;
+            return [start, end];
         });
     }, [
         firstIndex,
