@@ -22,7 +22,7 @@ export const duckDBService = {
         new Blob([`importScripts("${bundle.mainWorker}");`], { type: 'text/javascript' })
       );
       const worker = new Worker(workerUrl);
-      const logger = new duckdb.ConsoleLogger();
+      const logger = { log: (e: unknown) => console.log('DUCKDB ' + JSON.stringify(e)) };
 
       const duckDb = new duckdb.AsyncDuckDB(logger, worker);
       await duckDb.instantiate(bundle.mainModule, bundle.pthreadWorker);
@@ -49,18 +49,17 @@ export const duckDBService = {
       throw new Error('DuckDB no se pudo inicializar');
     }
     const fileName = relativePath.split('/').pop() ?? 'file.parquet';
+    const fullUrl = new URL(relativePath, location.origin).toString();
     let cargando = loadingFiles.get(fileName);
 
     if (!cargando) {
       cargando = (async () => {
-         const fullUrl = new URL(relativePath, self.location.origin).href;
-      const response = await fetch(fullUrl);
-      if (!response.ok) {
-        throw new Error(`No se pudo cargar el archivo Parquet desde ${fullUrl}`);
-      }
-
-      const arrayBuffer = await response.arrayBuffer();
-      await activeDb.registerFileBuffer(fileName, new Uint8Array(arrayBuffer));
+        await activeDb.registerFileURL(
+        fileName,
+         fullUrl,
+         duckdb.DuckDBDataProtocol.HTTP,
+  false
+);
       })()
      
       loadingFiles.set(fileName, cargando); // Marcamos como cargado
