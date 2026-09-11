@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@duckdb/duckdb-wasm':
-        specifier: 1.33.1-dev57.0
-        version: 1.33.1-dev57.0
+        specifier: 1.33.1-dev64.0
+        version: 1.33.1-dev64.0
       '@tanstack/react-virtual':
         specifier: ^3.14.9
         version: 3.14.9(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -111,8 +111,8 @@ packages:
   '@babel/runtime@8.0.0':
     resolution: {integrity: sha512-sL6cvO2IfkSu/iU+zs2S/w01B7A8V7suXSIKEN4hPFFdZoiPGxrj5pAG0lCaqLWiEIrjKzdznIWuaLcxPR53qw==}
 
-  '@duckdb/duckdb-wasm@1.33.1-dev57.0':
-    resolution: {integrity: sha512-ndn5l2EHq1PEMvCg8G6lRV0vjhSUcbqdM/niNBTTqH4/PyyUUVKbge0uUyCnj27b9SF/CiqBwDsgKLTqBvaxdw==}
+  '@duckdb/duckdb-wasm@1.33.1-dev64.0':
+    resolution: {integrity: sha512-NwJipYVG5B1lyPzvxfy7y1UldrezQDRyblKxu/DQqIVttuCU2yIsbNEJ0tvhMXyS1/7+m1vXildzhO+q2vqitg==}
 
   '@emnapi/core@1.11.1':
     resolution: {integrity: sha512-RSvbQmHzdKzNsLYa/wHrbc3KN4sYLKAdPZxqiM2HATqv/SBk2/ENSHpvXGaLOMcsAyz0poEGqkmmKYG3OWiJEQ==}
@@ -1418,7 +1418,7 @@ snapshots:
 
   '@babel/runtime@8.0.0': {}
 
-  '@duckdb/duckdb-wasm@1.33.1-dev57.0':
+  '@duckdb/duckdb-wasm@1.33.1-dev64.0':
     dependencies:
       apache-arrow: 17.0.0
       qs: 6.15.3
