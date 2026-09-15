@@ -54,7 +54,7 @@ export default function useParquetQuery(): { trips: { tripsArr: TaxiTrip[], rang
                 // Pedimos los datos al worker. 'resultado' ya es un Array de objetos JSON tipado como Usuario[]
                 const resultado = (await dbService.queryParquet(
                     parquetUrl,
-                    `SELECT * FROM 'trips3.parquet' LIMIT ${indexRange[1] - indexRange[0] + 1} OFFSET ${indexRange[0]}`
+                    `SELECT pickup, duration_s, distance_cent, fare_cents, tip_cents, passengers, payment_type FROM 'trips3.parquet' LIMIT ${indexRange[1] - indexRange[0] + 1} OFFSET ${indexRange[0]}`
                 )) as TaxiTrip[];
 
                 const fin = performance.now();
