@@ -48,8 +48,9 @@ export const duckDBService = {
     if (!activeDb) {
       throw new Error('DuckDB no se pudo inicializar');
     }
-    const fileName = relativePath.split('/').pop() ?? 'file.parquet';
-    const fullUrl = new URL(relativePath, location.origin).toString();
+    const R2_BASE = 'https://pub-620277a5fb934b16bec5572453b218f8.r2.dev'
+    const fileName = relativePath.split('/').pop() ?? 'trips3.parquet';
+    const fullUrl = `${R2_BASE}/${fileName}`
     let cargando = loadingFiles.get(fileName);
 
     if (!cargando) {
@@ -58,7 +59,7 @@ export const duckDBService = {
         fileName,
          fullUrl,
          duckdb.DuckDBDataProtocol.HTTP,
-  false
+  true
 );
       })()
      
@@ -71,7 +72,9 @@ export const duckDBService = {
     const conn = await activeDb.connect();
    
 
-    const query = sqlQuery || `SELECT * FROM '${fileName}' LIMIT 100`;
+    const query = sqlQuery 
+    ? sqlQuery.replace(new RegExp(`'${fileName}'`, 'g'), `'${fullUrl}'`)
+    : `SELECT * FROM '${fullUrl}' LIMIT 100`;
 
     const result = await conn.query(query);
     await conn.close();
@@ -80,7 +83,8 @@ export const duckDBService = {
   },
 
 async getParquetTableCount(relativePath: string) {
-  return this.queryParquet(relativePath, `SELECT COUNT(*) AS total FROM 'trips3.parquet'`);
+  const fileName = relativePath.split('/').pop() ?? 'trips3.parquet';
+  return this.queryParquet(relativePath, `SELECT COUNT(*) AS total FROM '${fileName}'`);
 },
 
 // TEMPORAL — diagnóstico de row groups. Borrar cuando tengamos el dato.
