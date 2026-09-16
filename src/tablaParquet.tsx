@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual'
 import useParquetQuery from './hooks/useParquetQuery';
 import { Slider } from 'antd';
@@ -14,15 +14,8 @@ export const TablaParquet: React.FC = () => {
         milesDistance: [0, 100],
     })
 
-    const { error, loading, trips, totalCount, setIndexRange } = useParquetQuery() //minmax
-    const filteredTrips = useMemo(() => {
-        const filter = trips.tripsArr.filter(trip => {
-            if ((trip.fare_cents / 100)! < filters.fareAmount) return false
-            if ((trip.fare_cents / 100)! < filters.milesDistance[0] || (trip.fare_cents / 100) > filters.milesDistance[1]) return false
-            return true
-        })
-        return (filter)
-    }, [trips, filters])
+    const { error, loading, trips, totalCount, setIndexRange } = useParquetQuery(filters) //minmax
+
     const scrollRef = useRef<HTMLDivElement>(null)
 
     const virtualizer = useVirtualizer({
@@ -42,11 +35,22 @@ export const TablaParquet: React.FC = () => {
         const start = Math.floor(firstIndex / BLOQUE) * BLOQUE
         const end = Math.ceil((lastIndex + 1) / BLOQUE) * BLOQUE - 1
 
-        setIndexRange((prev) => {
-            const [prevMin, prevMax] = prev;
-            if (prevMin === start && prevMax === end) return prev;
-            return [start, end];
-        });
+        const handler = setTimeout(() => {
+            if (firstIndex) {
+                console.log("salta el timeout")
+                setIndexRange((prev) => {
+                    const [prevMin, prevMax] = prev;
+                    if (prevMin === start && prevMax === end) return prev;
+                    return [start, end];
+                });
+
+            }
+        }, 600); // E
+
+
+        return () => {
+            clearTimeout(handler);
+        };
     }, [
         firstIndex,
         lastIndex,
@@ -87,7 +91,7 @@ export const TablaParquet: React.FC = () => {
                     onChange={(valor) => setFilters(prev => ({ ...prev, milesDistance: valor }))}
                     max={100} />
             </div>
-            <h2>Viajes con Propina ({filteredTrips.length})</h2>
+            <h2>Viajes con Propina ({totalCount})</h2>
 
             <div ref={scrollRef} className='h-[85dvh] w-[85dvw] overflow-auto'>
 
