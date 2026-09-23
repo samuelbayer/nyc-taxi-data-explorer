@@ -1,32 +1,43 @@
 import * as comlink from 'comlink';
 import type { DuckDBService } from '../workers/db.worker.ts';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 export interface TaxiTrip {
-    pickup: number;
-    duration_s: number;
-    distance_cent: number;
-    fare_cents: number;
-    tip_cents: number;
-    passengers: number;
-    payment_type: number;
+  pickup: number;
+  duration_s: number;
+  distance_cent: number;
+  fare_cents: number;
+  tip_cents: number;
+  passengers: number;
+  payment_type: number;
+}
+
+export interface Filters {
+  fareAmount: number;
+  milesDistance: number[];
+  paymentType: number;
+  passengerNumber: number;
+  hideNegativeFare: boolean;
 }
 
 
 // 2. Instanciamos el worker con soporte para módulos ES (compatible con Vite / Webpack 5)
 const worker = new Worker(new URL('../workers/db.worker.ts', import.meta.url), {
-    type: 'module',
+  type: 'module',
 });
 
-function construirWhere(filters: { fareAmount: number, milesDistance: number[] }): string {
-    const fareAmountCondition = filters.fareAmount > 0 ? `fare_cents >= ${filters.fareAmount * 100}` : '';
-    const milesDistanceCondition = `distance_cent BETWEEN ${filters.milesDistance[0] * 100} AND ${filters.milesDistance[1] * 100}`
-    //TODO: añadir un debounced para que no se ejecute la query cada vez que se cambia el filtro, sino que espere un tiempo a que el usuario deje de cambiar los filtros
-    const cond: string[] = [milesDistanceCondition]
+function construirWhere(filters: Filters): string {
+  const fareAmount = filters.fareAmount > 0 ? `fare_cents >= ${filters.fareAmount * 100}` : '';
+  const hideNegativeFareAmount = filters.hideNegativeFare ? 'fare_cents >= 0' : ''
+  const milesDistanceCondition = `distance_cent BETWEEN ${filters.milesDistance[0] * 100} AND ${filters.milesDistance[1] * 100}`
+  const paymentTypeCondition = filters.paymentType === 7 ? '' : `payment_type = ${filters.paymentType}`
+  const amountPassengerCondition = filters.passengerNumber > 0 ? `passengers >= ${filters.passengerNumber}` : ''
 
-    // aquí cada filtro empuja su condición si procede
+  const cond: string[] = [milesDistanceCondition, fareAmount, paymentTypeCondition, amountPassengerCondition, hideNegativeFareAmount]
+  const condFiltered = cond.filter((cond) => cond !== '')
+  // aquí cada filtro empuja su condición si procede
 
-    return cond.length ? `WHERE ${cond.join(' AND ')}` : ''
+  return condFiltered.length ? `WHERE ${condFiltered.join(' AND ')}` : ''
 }
 
 
@@ -34,65 +45,81 @@ const dbService = comlink.wrap<DuckDBService>(worker);
 const parquetUrl = '/trips3.parquet';
 
 
-export default function useParquetQuery(filters: { fareAmount: number, milesDistance: number[] }): { trips: { tripsArr: TaxiTrip[], range: number[] }, loading: boolean, error: string | null, totalCount: number, indexRange: number[], setIndexRange: React.Dispatch<React.SetStateAction<number[]>> } {
-    const [indexRange, setIndexRange] = useState([0, 499])
-    const [trips, setTrips] = useState<{ tripsArr: TaxiTrip[], range: number[] }>({ tripsArr: [], range: [0, 499] });
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [totalCount, setTotalCount] = useState<number>(0)
+export default function useParquetQuery(filters: Filters): { trips: { tripsArr: TaxiTrip[], range: number[] }, loading: boolean, error: string | null, totalCount: number, indexRange: number[], setIndexRange: React.Dispatch<React.SetStateAction<number[]>>, tiempoTotal: number | null } {
+  const [indexRange, setIndexRange] = useState([0, 499])
+  const [trips, setTrips] = useState<{ tripsArr: TaxiTrip[], range: number[] }>({ tripsArr: [], range: [0, 499] });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalCount, setTotalCount] = useState<number>(0)
+  const [tiempoTotal, setTiempoTotal] = useState<number | null>(null)
 
-    const where = construirWhere(filters)
+  const where = useMemo(() => construirWhere(filters), [filters])
 
-    const getParquetTableCount = useCallback(async () => {
+  useEffect(() => {
+    let cancelado = false;
+
+    async function getParquetTableCount() {
+      try {
         const count = await dbService.getParquetTableCount(parquetUrl, where)
+        if (cancelado) return
         setTotalCount(Number(count[0].total))
-    }, [where])
+      } catch (err) {
+        if (cancelado) return
+        console.error('Error leyendo ParquetTableCount:', err);
+      }
+
+    }
+
+    getParquetTableCount()
+
+    return () => { cancelado = true }
+  }, [where])
 
 
+  useEffect(() => {
+    let cancelado = false;
 
-    useEffect(() => {
-        getParquetTableCount()
-        console.log(filters)
-    }, [filters, getParquetTableCount])
+    async function cargarDatos() {
+      try {
+        setLoading(true);
+        setError(null);
 
-    useEffect(() => {
+        const inicio = performance.now();
 
-        async function cargarDatos() {
-            try {
-                setLoading(true);
+        console.log(`Consultando filas desde ${indexRange[0]} hasta ${indexRange[1]}`)
+        console.log('consulta', { indexRange, where })
 
+        // Pedimos los datos al worker. 'resultado' ya es un Array de objetos JSON tipado como Usuario[]
+        const resultado = (await dbService.queryParquet(
+          parquetUrl,
+          `SELECT pickup, duration_s, distance_cent, fare_cents, tip_cents, passengers, payment_type FROM 'trips3.parquet' ${where} LIMIT ${indexRange[1] - indexRange[0] + 1} OFFSET ${indexRange[0]}`
+        )) as TaxiTrip[];
 
-                const inicio = performance.now();
-
-                console.log(`Consultando filas desde ${indexRange[0]} hasta ${indexRange[1]}`)
-
-                // Pedimos los datos al worker. 'resultado' ya es un Array de objetos JSON tipado como Usuario[]
-                const resultado = (await dbService.queryParquet(
-                    parquetUrl,
-                    `SELECT pickup, duration_s, distance_cent, fare_cents, tip_cents, passengers, payment_type FROM 'trips3.parquet' ${where} LIMIT ${indexRange[1] - indexRange[0] + 1} OFFSET ${indexRange[0]}`
-                )) as TaxiTrip[];
-
-                const fin = performance.now();
-                const tiempoTotal = (fin - inicio).toFixed(2);
-
-                console.log(`⚡ Consulta ejecutada en: ${tiempoTotal} ms`);
-
-                setTrips({ tripsArr: resultado, range: indexRange });
-
-            } catch (err) {
-                console.error('Error leyendo Parquet:', err);
-                setError('No se pudo cargar el archivo Parquet');
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        cargarDatos();
-
-    }, [indexRange, filters, where]);
+        const fin = performance.now();
+        const ms = (fin - inicio).toFixed(2);
 
 
-    return { trips, loading, error, totalCount, indexRange, setIndexRange, }
+        if (cancelado) return;
+        setTiempoTotal(Number(ms))
+        setTrips({ tripsArr: resultado, range: indexRange });
+
+      } catch (err) {
+        if (cancelado) return;
+        console.error('Error leyendo Parquet:', err);
+        setError('No se pudo cargar el archivo Parquet');
+      } finally {
+        if (!cancelado) setLoading(false);
+      }
+    }
+
+    cargarDatos();
+
+    return () => { cancelado = true; }
+
+  }, [indexRange, where]);
+
+
+  return { trips, loading, error, totalCount, indexRange, setIndexRange, tiempoTotal }
 
 
 }

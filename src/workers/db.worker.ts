@@ -22,7 +22,10 @@ export const duckDBService = {
         new Blob([`importScripts("${bundle.mainWorker}");`], { type: 'text/javascript' })
       );
       const worker = new Worker(workerUrl);
-      const logger = { log: (e: unknown) => console.log('DUCKDB ' + JSON.stringify(e)) };
+      const DEBUG_DUCKDB = false
+      const logger = DEBUG_DUCKDB
+       ? { log: (e: unknown) => console.log('DUCKDB', e) }
+      : new duckdb.VoidLogger()
 
       const duckDb = new duckdb.AsyncDuckDB(logger, worker);
       await duckDb.instantiate(bundle.mainModule, bundle.pthreadWorker);
