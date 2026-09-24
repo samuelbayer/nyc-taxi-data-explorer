@@ -7,6 +7,13 @@ import useDebounce from './hooks/useDebounce';
 
 const BLOQUE = 500
 
+function formateadorNumero(numero: number) {
+    // Formatea el número usando las convenciones locales de España/Latinoamérica
+    const numeroFormateado = new Intl.NumberFormat('es-ES').format(numero);
+
+    return numeroFormateado
+}
+
 export const TablaParquet: React.FC = () => {
     const scrollRef = useRef<HTMLDivElement>(null)
     const [filters, setFilters] = useState({
@@ -124,8 +131,9 @@ export const TablaParquet: React.FC = () => {
                     onChange={(valor) => setFilters(prev => ({ ...prev, milesDistance: valor }))}
                     max={500} />
             </div>
-            <h2>Numero de viajes ({totalCount})</h2>
-            <p>Consulta en {tiempoTotal}ms</p>
+            {totalCount === 0 ?
+                <h2>No hay datos que cumplan con los filtros seleccionados</h2>
+                : <h2>Viendo filas {formateadorNumero(firstIndex + 1)} a {formateadorNumero(lastIndex + 1)} de <i> {formateadorNumero(totalCount)}</i> en {formateadorNumero(tiempoTotal as number)}ms</h2>}
 
             <div ref={scrollRef} className='h-[85dvh] w-[85dvw] overflow-auto'>
 
