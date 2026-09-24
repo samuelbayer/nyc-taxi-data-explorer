@@ -7,7 +7,9 @@ import useDebounce from './hooks/useDebounce';
 
 const BLOQUE = 500
 
-function formateadorNumero(numero: number) {
+export const ALL_PAYMENT_TYPES = 7
+
+function FormateadorNumero(numero: number) {
     // Formatea el número usando las convenciones locales de España/Latinoamérica
     const numeroFormateado = new Intl.NumberFormat('es-ES').format(numero);
 
@@ -19,7 +21,7 @@ export const TablaParquet: React.FC = () => {
     const [filters, setFilters] = useState({
         fareAmount: 0,
         milesDistance: [0, 500],
-        paymentType: 7,
+        paymentType: ALL_PAYMENT_TYPES,
         passengerNumber: 0,
         hideNegativeFare: false
     })
@@ -81,7 +83,7 @@ export const TablaParquet: React.FC = () => {
         if (type === 4) return 'Dispute'
         if (type === 5) return 'Unknown'
         if (type === 6) return 'Voided trip'
-        return 'Sin filtro'
+        return 'N/A'
     }
 
     if (loading && trips.tripsArr.length === 0) return <div>Cargando datos desde Parquet con DuckDB...</div>;
@@ -105,7 +107,7 @@ export const TablaParquet: React.FC = () => {
             />
             <label htmlFor='type-payment'>Tipo de pago</label>
             <select id='type-payment' value={filters.paymentType} onChange={(e) => setFilters(prev => ({ ...prev, paymentType: Number(e.target.value) }))} className='text-white bg-gray-900' style={{ color: 'white' }} >
-                <option value="7">Sin filtro</option>
+                <option value={ALL_PAYMENT_TYPES}>Sin filtro</option>
                 <option value="0">Flex Fare trip</option>
                 <option value="1">Credit card</option>
                 <option value="2">Cash</option>
@@ -133,7 +135,7 @@ export const TablaParquet: React.FC = () => {
             </div>
             {totalCount === 0 ?
                 <h2>No hay datos que cumplan con los filtros seleccionados</h2>
-                : <h2>Viendo filas {formateadorNumero(firstIndex + 1)} a {formateadorNumero(lastIndex + 1)} de <i> {formateadorNumero(totalCount)}</i> en {formateadorNumero(tiempoTotal as number)}ms</h2>}
+                : <h2>Viendo filas {FormateadorNumero(firstIndex + 1)} a {FormateadorNumero(lastIndex + 1)} de <i> {FormateadorNumero(totalCount)}</i> en {FormateadorNumero(tiempoTotal as number)}ms</h2>}
 
             <div ref={scrollRef} className='h-[85dvh] w-[85dvw] overflow-auto'>
 

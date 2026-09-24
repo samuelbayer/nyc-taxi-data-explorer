@@ -1,6 +1,7 @@
 import * as comlink from 'comlink';
 import type { DuckDBService } from '../workers/db.worker.ts';
 import { useEffect, useState, useMemo } from 'react';
+import { ALL_PAYMENT_TYPES } from '../tablaParquet.tsx'
 
 export interface TaxiTrip {
   pickup: number;
@@ -30,7 +31,7 @@ function construirWhere(filters: Filters): string {
   const fareAmount = filters.fareAmount > 0 ? `fare_cents >= ${filters.fareAmount * 100}` : '';
   const hideNegativeFareAmount = filters.hideNegativeFare ? 'fare_cents >= 0' : ''
   const milesDistanceCondition = `distance_cent BETWEEN ${filters.milesDistance[0] * 100} AND ${filters.milesDistance[1] * 100}`
-  const paymentTypeCondition = filters.paymentType === 7 ? '' : `payment_type = ${filters.paymentType}`
+  const paymentTypeCondition = filters.paymentType === ALL_PAYMENT_TYPES ? '' : `payment_type = ${filters.paymentType}`
   const amountPassengerCondition = filters.passengerNumber > 0 ? `passengers >= ${filters.passengerNumber}` : ''
 
   const cond: string[] = [milesDistanceCondition, fareAmount, paymentTypeCondition, amountPassengerCondition, hideNegativeFareAmount]
@@ -85,9 +86,6 @@ export default function useParquetQuery(filters: Filters): { trips: { tripsArr: 
         setError(null);
 
         const inicio = performance.now();
-
-        console.log(`Consultando filas desde ${indexRange[0]} hasta ${indexRange[1]}`)
-        console.log('consulta', { indexRange, where })
 
         // Pedimos los datos al worker. 'resultado' ya es un Array de objetos JSON tipado como Usuario[]
         const resultado = (await dbService.queryParquet(
