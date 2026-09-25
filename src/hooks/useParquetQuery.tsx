@@ -2,6 +2,7 @@ import * as comlink from 'comlink';
 import type { DuckDBService } from '../workers/db.worker.ts';
 import { useEffect, useState, useMemo } from 'react';
 import { ALL_PAYMENT_TYPES } from '../tablaParquet.tsx'
+import { MAX_MILES_DISTANCE } from '../tablaParquet.tsx'
 
 export interface TaxiTrip {
   pickup: number;
@@ -28,13 +29,17 @@ const worker = new Worker(new URL('../workers/db.worker.ts', import.meta.url), {
 });
 
 function construirWhere(filters: Filters): string {
+  const [min, max] = filters.milesDistance
   const fareAmount = filters.fareAmount > 0 ? `fare_cents >= ${filters.fareAmount * 100}` : '';
   const hideNegativeFareAmount = filters.hideNegativeFare ? 'fare_cents >= 0' : ''
-  const milesDistanceCondition = `distance_cent BETWEEN ${filters.milesDistance[0] * 100} AND ${filters.milesDistance[1] * 100}`
+  const milesDistanceConditionMin = min > 0 ? `distance_cent >= ${min * 100}` : '';
+  const milesDistanceConditionMax = max < MAX_MILES_DISTANCE ? `distance_cent <= ${max * 100}` : '';
+
+
   const paymentTypeCondition = filters.paymentType === ALL_PAYMENT_TYPES ? '' : `payment_type = ${filters.paymentType}`
   const amountPassengerCondition = filters.passengerNumber > 0 ? `passengers >= ${filters.passengerNumber}` : ''
 
-  const cond: string[] = [milesDistanceCondition, fareAmount, paymentTypeCondition, amountPassengerCondition, hideNegativeFareAmount]
+  const cond: string[] = [milesDistanceConditionMin, milesDistanceConditionMax, fareAmount, paymentTypeCondition, amountPassengerCondition, hideNegativeFareAmount]
   const condFiltered = cond.filter((cond) => cond !== '')
   // aquí cada filtro empuja su condición si procede
 
@@ -86,7 +91,7 @@ export default function useParquetQuery(filters: Filters): { trips: { tripsArr: 
         setError(null);
 
         const inicio = performance.now();
-
+        console.log(where)
         // Pedimos los datos al worker. 'resultado' ya es un Array de objetos JSON tipado como Usuario[]
         const resultado = (await dbService.queryParquet(
           parquetUrl,

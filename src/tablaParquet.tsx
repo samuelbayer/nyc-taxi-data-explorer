@@ -8,6 +8,7 @@ import useDebounce from './hooks/useDebounce';
 const BLOQUE = 500
 
 export const ALL_PAYMENT_TYPES = 7
+export const MAX_MILES_DISTANCE = 500
 
 function FormateadorNumero(numero: number) {
     // Formatea el número usando las convenciones locales de España/Latinoamérica
@@ -20,7 +21,7 @@ export const TablaParquet: React.FC = () => {
     const scrollRef = useRef<HTMLDivElement>(null)
     const [filters, setFilters] = useState({
         fareAmount: 0,
-        milesDistance: [0, 500],
+        milesDistance: [0, MAX_MILES_DISTANCE],
         paymentType: ALL_PAYMENT_TYPES,
         passengerNumber: 0,
         hideNegativeFare: false
@@ -131,7 +132,7 @@ export const TablaParquet: React.FC = () => {
                     id='miles-range'
                     value={filters.milesDistance}
                     onChange={(valor) => setFilters(prev => ({ ...prev, milesDistance: valor }))}
-                    max={500} />
+                    max={MAX_MILES_DISTANCE} />
             </div>
             {totalCount === 0 ?
                 <h2>No hay datos que cumplan con los filtros seleccionados</h2>
