@@ -1,27 +1,9 @@
 import * as comlink from 'comlink';
 import type { DuckDBService } from '../workers/db.worker.ts';
 import { useEffect, useState, useMemo } from 'react';
-import { ALL_PAYMENT_TYPES } from '../tablaParquet.tsx'
-import { MAX_MILES_DISTANCE } from '../tablaParquet.tsx'
+import { ALL_PAYMENT_TYPES, MAX_MILES_DISTANCE } from '../lib/filters.ts'
 
-export interface TaxiTrip {
-  pickup: number;
-  duration_s: number;
-  distance_cent: number;
-  fare_cents: number;
-  tip_cents: number;
-  passengers: number;
-  payment_type: number;
-}
-
-export interface Filters {
-  fareAmount: number;
-  milesDistance: number[];
-  paymentType: number;
-  passengerNumber: number;
-  hideNegativeFare: boolean;
-}
-
+import { type TaxiTrip, type Filters } from '../types'
 
 // 2. Instanciamos el worker con soporte para módulos ES (compatible con Vite / Webpack 5)
 const worker = new Worker(new URL('../workers/db.worker.ts', import.meta.url), {

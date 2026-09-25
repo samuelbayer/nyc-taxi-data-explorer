@@ -1,4 +1,4 @@
-import { TablaParquet } from './tablaParquet'
+import { TablaParquet } from './components/tablaParquet'
 
 
 function App() {
