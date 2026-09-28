@@ -1,6 +1,6 @@
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
 
-const miles = new Intl.NumberFormat('en-US', { style: 'unit', unit: 'mile', maximumFractionDigits: 1 })
+const miles = new Intl.NumberFormat('en-US', { style: 'unit', unit: 'mile', minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 const integer = new Intl.NumberFormat('en-US')
 
@@ -42,4 +42,11 @@ export function formatTypePayment(type: number | null): string {
     if (type === 5) return 'Unknown'
     if (type === 6) return 'Voided trip'
     return 'N/A'
+  }
+
+  export function formatPassengerNumber(passengers: number): string {
+    if (passengers === null) return '—'
+    const stringified = String(passengers)   
+    return stringified
+    
   }

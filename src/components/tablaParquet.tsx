@@ -7,6 +7,8 @@ import useDebounce from '../hooks/useDebounce';
 import { TRIP_COLUMNS } from '../lib/columns';
 import { ALL_PAYMENT_TYPES, MAX_MILES_DISTANCE } from '../lib/filters.ts'
 import { formatInteger } from "../lib/format"
+import { ALIGN_CLASS } from "../lib/columns"
+import { TRIP_GRID_STYLE } from "../lib/columns"
 
 const BLOQUE = 500
 
@@ -37,7 +39,7 @@ export const TablaParquet: React.FC = () => {
 
   const virtualizer = useVirtualizer({
     count: totalCount,
-    estimateSize: () => 80,
+    estimateSize: () => 60,
     getScrollElement: () => scrollRef.current
   })
 
@@ -123,10 +125,10 @@ export const TablaParquet: React.FC = () => {
         <h2>No hay datos que cumplan con los filtros seleccionados</h2>
         : <h2>Viendo filas {formatInteger(firstIndex + 1)} a {formatInteger(lastIndex + 1)} de <i> {formatInteger(totalCount)}</i> en {formatInteger(tiempoTotal as number)}ms</h2>}
 
-      <div ref={scrollRef} className='h-[85dvh] w-[85dvw] overflow-auto'>
+      <div ref={scrollRef} className='h-[85dvh] w-full max-w-7xl mx-auto overflow-auto'>
 
-        <div className='hidden will-change-transform bg-slate-950 z-10 sticky top-0 md:grid grid-cols-8 gap-4 px-3 md:px-4 py-3 border-slate-950 border-8'>
-          {TRIP_COLUMNS.map((col) => <div key={col.key}>{col.label}</div>)}
+        <div style={TRIP_GRID_STYLE} className='hidden will-change-transform text-xs uppercase tracking-wide text-slate-400 border-b border-slate-700 bg-slate-950 z-10 sticky top-0 md:grid gap-8 px-3 md:px-4 py-4'>
+          {TRIP_COLUMNS.map((col) => <div className={ALIGN_CLASS[col.align]} key={col.key}>{col.label}</div>)}
         </div>
 
         <div className='relative w-full' style={{ height: `${virtualizer.getTotalSize()}px` }}>
@@ -145,8 +147,8 @@ export const TablaParquet: React.FC = () => {
 
             return (
               <div className='absolute flex top-0 left-0 w-full border-b border-slate-900' style={{ transform: `translateY(${vItem.start}px)`, height: `${vItem.size}px` }} key={vItem.key} data-index={vItem.index}>
-                <div className="w-full items-center p-3 md:py-2 md:px-4 md:grid grid-cols-8 gap-4  ">
-                  {TRIP_COLUMNS.map((col) => <p key={col.key}>{col.render(trip)}</p>)}
+                <div style={TRIP_GRID_STYLE} className="w-full items-center p-3 md:py-2 md:px-4 md:grid gap-8 odd:bg-slate-900/40 even:bg-slate-900/20">
+                  {TRIP_COLUMNS.map((col) => <p className={ALIGN_CLASS[col.align] + (col.muted ? ' text-slate-400' : '')} key={col.key}>{col.render(trip)}</p>)}
                 </div>
               </div>
             )
