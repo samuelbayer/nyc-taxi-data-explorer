@@ -12,7 +12,7 @@ export function FiltersPanel({ filters, setFilters }: { filters: Filters, setFil
 
 
     <div className="flex flex-col gap-2">
-      <label htmlFor="payment-range">Min. fare: ${filters.fareAmount}</label>
+      <label className='text-sm text-slate-300' htmlFor="payment-range">Min. fare: ${filters.fareAmount}</label>
       <input
         type="range"
         id="payment-range"
@@ -27,8 +27,8 @@ export function FiltersPanel({ filters, setFilters }: { filters: Filters, setFil
 
 
     <div className="flex flex-col gap-2">
-      <label htmlFor='type-payment'>Payment type</label>
-      <select id='type-payment' value={filters.paymentType} onChange={(e) => setFilters(prev => ({ ...prev, paymentType: Number(e.target.value) }))} className='text-white bg-gray-900' style={{ color: 'white' }} >
+      <label className='text-sm text-slate-300' htmlFor='type-payment'>Payment type</label>
+      <select id='type-payment' value={filters.paymentType} onChange={(e) => setFilters(prev => ({ ...prev, paymentType: Number(e.target.value) }))} className='bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200' >
         <option value={ALL_PAYMENT_TYPES}>No Filter</option>
         <option value="0">Flex Fare trip</option>
         <option value="1">Credit card</option>
@@ -42,7 +42,7 @@ export function FiltersPanel({ filters, setFilters }: { filters: Filters, setFil
 
 
     <div className="flex flex-col gap-2">
-      <label htmlFor='number-passengers'>Min. passengers: {filters.passengerNumber === 0 ? 'Any' : filters.passengerNumber}</label>
+      <label className='text-sm text-slate-300' htmlFor='number-passengers'>Min. passengers: {filters.passengerNumber === 0 ? 'Any' : filters.passengerNumber}</label>
       <input type="range"
         id="number-passengers"
         min="0"
@@ -55,7 +55,7 @@ export function FiltersPanel({ filters, setFilters }: { filters: Filters, setFil
 
 
     <div className="flex flex-col gap-2">
-      <label htmlFor='miles-range'>Distance: {filters.milesDistance[0]} - {filters.milesDistance[1] === MAX_MILES_DISTANCE ? `${filters.milesDistance[1]}+` : filters.milesDistance[1]} mi</label>
+      <label className='text-sm text-slate-300' htmlFor='miles-range'>Distance: {filters.milesDistance[0]} - {filters.milesDistance[1] === MAX_MILES_DISTANCE ? `${filters.milesDistance[1]}+` : filters.milesDistance[1]} mi</label>
       <Slider range
         id='miles-range'
         value={filters.milesDistance}

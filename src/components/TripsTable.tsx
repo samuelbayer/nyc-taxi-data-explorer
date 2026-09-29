@@ -7,6 +7,7 @@ import { ALIGN_CLASS } from "../lib/columns.ts"
 import { TRIP_GRID_STYLE } from "../lib/columns.ts"
 import type { Filters } from '../types.ts'
 import { StatusBar } from './StatusBar.tsx';
+import { TripCard } from './TripCard.tsx';
 
 const BLOQUE = 500
 
@@ -71,6 +72,11 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
           {TRIP_COLUMNS.map((col) => <div className={ALIGN_CLASS[col.align]} key={col.key}>{col.label}</div>)}
         </div>
         <div className='relative w-full' style={{ height: `${virtualizer.getTotalSize()}px` }}>
+          {loading && totalCount === 0 ? Array.from({ length: 17 }).map((_, i) => (
+            <div key={i} style={{ height: '60px' }} className=' border-b border-slate-900'>
+              <RowSkeleton index={i} />
+            </div>
+          )) : null}
           {!error && virtualItems.map((vItem) => {
             const trip = trips.tripsArr[vItem.index - trips.range[0]]
 
@@ -84,9 +90,10 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
 
             return (
               <div className='absolute flex top-0 left-0 w-full border-b border-slate-900' style={{ transform: `translateY(${vItem.start}px)`, height: `${vItem.size}px` }} key={vItem.key} data-index={vItem.index}>
-                <div style={TRIP_GRID_STYLE} className="w-full items-center p-3 md:py-2 md:px-4 md:grid gap-8 odd:bg-slate-900/40 even:bg-slate-900/20">
+                <div style={TRIP_GRID_STYLE} className="hidden w-full items-center p-3 md:py-2 md:px-4 md:grid gap-8 odd:bg-slate-900/40 even:bg-slate-900/20">
                   {TRIP_COLUMNS.map((col) => <p className={cellClass(col)} key={col.key}><span className={col.tone ? col.tone(trip) : ''}>{col.render(trip)}</span></p>)}
                 </div>
+                <TripCard trip={trip} />
               </div>
             )
           })}
