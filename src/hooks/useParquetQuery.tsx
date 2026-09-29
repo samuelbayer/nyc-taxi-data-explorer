@@ -45,7 +45,7 @@ export default function useParquetQuery(filters: Filters): { trips: { tripsArr: 
 
   useEffect(() => {
     let cancelado = false;
-
+    setError(null)
     async function getParquetTableCount() {
       try {
         const count = await dbService.getParquetTableCount(parquetUrl, where)

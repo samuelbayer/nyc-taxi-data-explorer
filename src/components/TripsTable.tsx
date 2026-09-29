@@ -2,11 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual'
 import useParquetQuery from '../hooks/useParquetQuery.tsx';
 import { RowSkeleton } from './RowSkeleton.tsx'
-import { TRIP_COLUMNS } from '../lib/columns.ts';
+import { cellClass, TRIP_COLUMNS } from '../lib/columns.ts';
 import { ALIGN_CLASS } from "../lib/columns.ts"
 import { TRIP_GRID_STYLE } from "../lib/columns.ts"
 import type { Filters } from '../types.ts'
-import { formatInteger } from "../lib/format"
+import { StatusBar } from './StatusBar.tsx';
 
 const BLOQUE = 500
 
@@ -63,22 +63,15 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
     virtualItems.length, setIndexRange
   ]);
 
-  if (loading && trips.tripsArr.length === 0) return <div>Cargando datos desde Parquet con DuckDB...</div>;
-  if (error) return <div style={{ color: 'red' }}>{error}</div>;
-
   return (
     <>
-
-      {totalCount === 0 ?
-        <h2>No hay datos que cumplan con los filtros seleccionados</h2>
-        : <h2>Viendo filas {formatInteger(firstIndex + 1)} a {formatInteger(lastIndex + 1)} de <i> {formatInteger(totalCount)}</i> en {formatInteger(tiempoTotal as number)}ms</h2>}
-
+      <StatusBar totalCount={totalCount} firstIndex={firstIndex} lastIndex={lastIndex} tiempoTotal={tiempoTotal} error={error} loading={loading} tripsArrLength={trips.tripsArr.length} />
       <div ref={scrollRef} className='h-[85dvh] w-full mx-auto overflow-auto'>
         <div style={TRIP_GRID_STYLE} className='hidden will-change-transform text-xs uppercase tracking-wide text-slate-400 border-b border-slate-700 bg-slate-950 z-10 sticky top-0 md:grid gap-8 px-3 md:px-4 py-4'>
           {TRIP_COLUMNS.map((col) => <div className={ALIGN_CLASS[col.align]} key={col.key}>{col.label}</div>)}
         </div>
         <div className='relative w-full' style={{ height: `${virtualizer.getTotalSize()}px` }}>
-          {virtualItems.map((vItem) => {
+          {!error && virtualItems.map((vItem) => {
             const trip = trips.tripsArr[vItem.index - trips.range[0]]
 
             if (!trip) {
@@ -92,7 +85,7 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
             return (
               <div className='absolute flex top-0 left-0 w-full border-b border-slate-900' style={{ transform: `translateY(${vItem.start}px)`, height: `${vItem.size}px` }} key={vItem.key} data-index={vItem.index}>
                 <div style={TRIP_GRID_STYLE} className="w-full items-center p-3 md:py-2 md:px-4 md:grid gap-8 odd:bg-slate-900/40 even:bg-slate-900/20">
-                  {TRIP_COLUMNS.map((col) => <p className={ALIGN_CLASS[col.align] + (col.muted ? ' text-slate-400' : '')} key={col.key}>{col.render(trip)}</p>)}
+                  {TRIP_COLUMNS.map((col) => <p className={cellClass(col)} key={col.key}><span className={col.tone ? col.tone(trip) : ''}>{col.render(trip)}</span></p>)}
                 </div>
               </div>
             )

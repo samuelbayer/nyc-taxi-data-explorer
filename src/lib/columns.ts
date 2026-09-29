@@ -1,5 +1,7 @@
 import type { TaxiTrip } from "../types"
 import {formatDistance,formatMoney,formatDateTime, formatDuration, formatDropOffDate, formatTypePayment, formatPassengerNumber} from "./format"
+import { moneyTone, paymentTone } from "./tone"
+
 
 type Column = {
   key: string,
@@ -7,6 +9,7 @@ type Column = {
   align: 'left' | 'right',
   width: number,
   muted?: boolean,
+  tone?: (trip: TaxiTrip) => string,
   render: (trip: TaxiTrip) => string
 }
 
@@ -31,6 +34,7 @@ export const TRIP_COLUMNS: Column[] = [
     align: 'right',
     width: 1,
     muted: false,
+    tone: (trip) => moneyTone(trip.fare_cents),
     render: (trip) => formatMoney((trip.fare_cents))
   },
   {
@@ -39,6 +43,7 @@ export const TRIP_COLUMNS: Column[] = [
     align: 'right', 
     width: 1,
     muted: false,
+    tone: (trip) => moneyTone(trip.tip_cents),
     render: (trip) => formatMoney((trip.tip_cents))
   },
   {
@@ -79,6 +84,7 @@ export const TRIP_COLUMNS: Column[] = [
     align: 'left', 
     muted: true,
     width: 1.5,
+    tone: (trip) => paymentTone(trip.payment_type),
     render: (trip) => formatTypePayment(trip.payment_type)
   }
 ]
@@ -86,4 +92,8 @@ export const TRIP_COLUMNS: Column[] = [
 const widths = TRIP_COLUMNS.map(col => `minmax(0, ${col.width}fr)`).join(' ')
 export const TRIP_GRID_STYLE = {
   gridTemplateColumns: widths,
+}
+
+export function cellClass(col: Column) {
+  return ALIGN_CLASS[col.align] + (col.muted ? ' text-slate-400' : '')
 }
