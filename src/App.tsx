@@ -19,8 +19,8 @@ function App() {
     <>
       <div className="min-h-screen bg-slate-950 px-6 py-3 text-white">
         <h1 className="text-4xl font-bold mb-8">NYC Taxi Data Explorer</h1>
-        <div className="flex gap-6 ">
-          <aside className="w-72 shrink-0">
+        <div className="flex flex-col md:flex-row gap-6 ">
+          <aside className="w-full shrink-0 md:w-72">
             <FiltersPanel filters={filters} setFilters={setFilters} />
           </aside>
           <main className="flex-1 min-w-0">

@@ -7,9 +7,10 @@ import { ALIGN_CLASS } from "../lib/columns.ts";
 import { TRIP_GRID_STYLE } from "../lib/columns.ts";
 import type { Filters } from "../types.ts";
 import { StatusBar } from "./StatusBar.tsx";
-import { TripCard } from "./TripCard.tsx";
+import { CARD_HEIGHT, TripCard } from "./TripCard.tsx";
 
 const BLOQUE = 500;
+export const MOBILE_BREAKPOINT = 768
 
 type Props = { filtersDebounced: Filters };
 
@@ -31,9 +32,24 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
 
   const virtualizer = useVirtualizer({
     count: totalCount,
-    estimateSize: () => 60,
+    estimateSize: () => (window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44),
     getScrollElement: () => scrollRef.current,
+    overscan: 10
   });
+
+  useEffect(() => {
+    let isItMobile = window.innerWidth < MOBILE_BREAKPOINT
+    const handleResize = () => {
+      if ((window.innerWidth < MOBILE_BREAKPOINT) === isItMobile) {
+        return
+      }
+      isItMobile = window.innerWidth < MOBILE_BREAKPOINT
+      return virtualizer.measure(
+      )
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [virtualizer])
 
   const virtualItems = virtualizer.getVirtualItems();
 
@@ -87,14 +103,14 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
         >
           {loading && totalCount === 0
             ? Array.from({ length: 17 }).map((_, i) => (
-                <div
-                  key={i}
-                  style={{ height: "60px" }}
-                  className=" border-b border-slate-900"
-                >
-                  <RowSkeleton index={i} />
-                </div>
-              ))
+              <div
+                key={i}
+                style={{ height: window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44 }}
+                className=" border-b border-slate-900"
+              >
+                <RowSkeleton index={i} />
+              </div>
+            ))
             : null}
           {!error &&
             virtualItems.map((vItem) => {
@@ -118,7 +134,7 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
 
               return (
                 <div
-                  className="absolute flex top-0 left-0 w-full border-b border-slate-900"
+                  className={`absolute top-0 left-0 w-full border-b border-slate-900 ${(vItem.index % 2) === 1 ? 'bg-slate-900/40' : 'bg-slate-900/20'}  `}
                   style={{
                     transform: `translateY(${vItem.start}px)`,
                     height: `${vItem.size}px`,
@@ -128,7 +144,7 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
                 >
                   <div
                     style={TRIP_GRID_STYLE}
-                    className="hidden w-full items-center p-3 md:py-2 md:px-4 md:grid gap-8 odd:bg-slate-900/40 even:bg-slate-900/20"
+                    className="hidden w-full items-center p-3 md:py-2 md:px-4 md:grid gap-8 "
                   >
                     {TRIP_COLUMNS.map((col) => (
                       <p className={cellClass(col)} key={col.key}>

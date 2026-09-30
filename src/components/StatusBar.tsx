@@ -22,9 +22,9 @@ export function StatusBar({
     return <h2 className="text-slate-300">Loading...</h2>;
 
   return totalCount === 0 ? (
-    <h2 className="hidden md:grid">No trips match these filters</h2>
+    <h2 className="hidden md:block">No trips match these filters</h2>
   ) : (
-    <h2 className="hidden md:grid">
+    <h2 className="hidden md:block">
       Showing rows {formatInteger(firstIndex + 1)} to{" "}
       {formatInteger(lastIndex + 1)} of <i> {formatInteger(totalCount)}</i> in{" "}
       {formatInteger(tiempoTotal as number)}ms

@@ -1,5 +1,6 @@
 import React from "react";
-import { TRIP_COLUMNS } from "../lib/columns";
+import { TRIP_COLUMNS, TRIP_GRID_STYLE } from "../lib/columns";
+import { CARD_HEIGHT } from "./TripCard";
 
 type RowSkeletonProps = {
   /** El índice de la fila virtual. Solo se usa para variar los anchos
@@ -15,19 +16,34 @@ function pseudoWidth(index: number, col: number): number {
 
 export const RowSkeleton: React.FC<RowSkeletonProps> = ({ index }) => {
   return (
-    <div
-      aria-hidden="true"
-      className="p-3 md:py-2 md:px-4 md:grid grid-cols-8 gap-4 items-center h-full"
-    >
-      {TRIP_COLUMNS.map((_, col) => (
-        <div key={col} className="flex items-center justify-center h-full">
-          <div
-            className="h-3 rounded bg-slate-700/60 animate-pulse"
-            style={{ width: `${pseudoWidth(index, col)}%` }}
-          />
-        </div>
-      ))}
-    </div>
+    <>
+      <div
+        aria-hidden="true"
+        className="hidden p-3 md:py-2 md:px-4 md:grid gap-4 items-center h-full"
+        style={TRIP_GRID_STYLE}
+      >
+        {TRIP_COLUMNS.map((_, col) => (
+          <div key={col} className="flex items-center justify-center h-full">
+            <div
+              className="h-3 rounded bg-slate-700/60 animate-pulse"
+              style={{ width: `${pseudoWidth(index, col)}%` }}
+            />
+          </div>
+        ))}
+      </div>
+      <div aria-hidden="true" className="md:hidden grid gap-8 p-6 grid-cols-2" style={{ height: CARD_HEIGHT }}>
+        {TRIP_COLUMNS.map((_, col) => (
+          <div key={col} className="flex flex-col gap-2">
+            <div
+              className="h-2 w-1/3 rounded bg-slate-700/60 animate-pulse"
+            />
+            <div className="h-4 rounded bg-slate-700/60 animate-pulse"
+              style={{ width: `${pseudoWidth(index, col)}%` }} />
+          </div>
+
+        ))}
+      </div>
+    </>
   );
 };
 
