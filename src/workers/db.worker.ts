@@ -1,5 +1,5 @@
-import * as comlink from 'comlink';
-import * as duckdb from '@duckdb/duckdb-wasm';
+import * as comlink from "comlink";
+import * as duckdb from "@duckdb/duckdb-wasm";
 
 let db: duckdb.AsyncDuckDB | null = null;
 let initPromise: Promise<void> | null = null;
@@ -12,20 +12,21 @@ export const duckDBService = {
   async init(): Promise<void> {
     if (db) return;
     if (initPromise) return initPromise;
-    
 
     initPromise = (async () => {
       const bundles = duckdb.getJsDelivrBundles();
       const bundle = await duckdb.selectBundle(bundles);
 
       const workerUrl = URL.createObjectURL(
-        new Blob([`importScripts("${bundle.mainWorker}");`], { type: 'text/javascript' })
+        new Blob([`importScripts("${bundle.mainWorker}");`], {
+          type: "text/javascript",
+        }),
       );
       const worker = new Worker(workerUrl);
-      const DEBUG_DUCKDB = false
+      const DEBUG_DUCKDB = false;
       const logger = DEBUG_DUCKDB
-       ? { log: (e: unknown) => console.log('DUCKDB', e) }
-      : new duckdb.VoidLogger()
+        ? { log: (e: unknown) => console.log("DUCKDB", e) }
+        : new duckdb.VoidLogger();
 
       const duckDb = new duckdb.AsyncDuckDB(logger, worker);
       await duckDb.instantiate(bundle.mainModule, bundle.pthreadWorker);
@@ -43,55 +44,53 @@ export const duckDBService = {
 
   async queryParquet<T = QueryResultRow>(
     relativePath: string,
-    sqlQuery?: string
+    sqlQuery?: string,
   ): Promise<T[]> {
     if (!db) await this.init();
 
     const activeDb = db;
     if (!activeDb) {
-      throw new Error('DuckDB no se pudo inicializar');
+      throw new Error("DuckDB no se pudo inicializar");
     }
     const BASE = import.meta.env.VITE_PARQUET_BASE || location.origin;
-    const fileName = relativePath.split('/').pop() ?? 'trips3.parquet';
+    const fileName = relativePath.split("/").pop() ?? "trips3.parquet";
     const fullUrl = `${BASE}/${fileName}`;
     let cargando = loadingFiles.get(fileName);
 
     if (!cargando) {
       cargando = (async () => {
         await activeDb.registerFileURL(
-        fileName,
-         fullUrl,
-         duckdb.DuckDBDataProtocol.HTTP,
-  true
-);
-      })()
-     
+          fileName,
+          fullUrl,
+          duckdb.DuckDBDataProtocol.HTTP,
+          true,
+        );
+      })();
+
       loadingFiles.set(fileName, cargando); // Marcamos como cargado
       cargando.catch(() => loadingFiles.delete(fileName));
     }
 
-    await cargando
+    await cargando;
 
     const conn = await activeDb.connect();
-   
 
-    const query = sqlQuery 
-    ? sqlQuery
-    : `SELECT * FROM '${fullUrl}' LIMIT 100`;
+    const query = sqlQuery ? sqlQuery : `SELECT * FROM '${fullUrl}' LIMIT 100`;
 
     const result = await conn.query(query);
 
-    
     await conn.close();
 
     return result.toArray().map((row) => row.toJSON() as T);
   },
 
   async getParquetTableCount(relativePath: string, where: string) {
-    const fileName = relativePath.split('/').pop() ?? 'trips3.parquet';
-    return this.queryParquet(relativePath, `SELECT COUNT(*) AS total FROM '${fileName}' ${where}`);
+    const fileName = relativePath.split("/").pop() ?? "trips3.parquet";
+    return this.queryParquet(
+      relativePath,
+      `SELECT COUNT(*) AS total FROM '${fileName}' ${where}`,
+    );
   },
-
 };
 
 export type DuckDBService = typeof duckDBService;

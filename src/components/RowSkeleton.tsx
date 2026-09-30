@@ -1,16 +1,16 @@
-import React from 'react'
-import { TRIP_COLUMNS } from '../lib/columns'
+import React from "react";
+import { TRIP_COLUMNS } from "../lib/columns";
 
 type RowSkeletonProps = {
   /** El índice de la fila virtual. Solo se usa para variar los anchos
    *  y que no salgan 8 barras idénticas repetidas en pantalla. */
-  index: number
-}
+  index: number;
+};
 
 /** Anchos "aleatorios" pero deterministas por celda (0-99). */
 function pseudoWidth(index: number, col: number): number {
-  const n = (index * 37 + col * 71) % 100
-  return 45 + (n % 45) // entre 45% y 89%
+  const n = (index * 37 + col * 71) % 100;
+  return 45 + (n % 45); // entre 45% y 89%
 }
 
 export const RowSkeleton: React.FC<RowSkeletonProps> = ({ index }) => {
@@ -28,7 +28,7 @@ export const RowSkeleton: React.FC<RowSkeletonProps> = ({ index }) => {
         </div>
       ))}
     </div>
-  )
-}
+  );
+};
 
-export default RowSkeleton
+export default RowSkeleton;
