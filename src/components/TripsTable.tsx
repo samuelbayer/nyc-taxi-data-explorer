@@ -2,12 +2,14 @@ import React, { useEffect, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import useParquetQuery from "../hooks/useParquetQuery.tsx";
 import { RowSkeleton } from "./RowSkeleton.tsx";
-import { cellClass, TRIP_COLUMNS } from "../lib/columns.ts";
+import { TRIP_COLUMNS } from "../lib/columns.ts";
 import { ALIGN_CLASS } from "../lib/columns.ts";
 import { TRIP_GRID_STYLE } from "../lib/columns.ts";
 import type { Filters } from "../types.ts";
 import { StatusBar } from "./StatusBar.tsx";
 import { CARD_HEIGHT, TripCard } from "./TripCard.tsx";
+import { TripRow } from "./TripRow.tsx";
+import { VirtualRow } from "./VirtualRow.tsx";
 
 const BLOQUE = 500;
 export const MOBILE_BREAKPOINT = 768;
@@ -121,44 +123,19 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
 
               if (!trip) {
                 return (
-                  <div
-                    className="absolute top-0 left-0 w-full border-b border-slate-900"
-                    style={{
-                      transform: `translateY(${vItem.start}px)`,
-                      height: `${vItem.size}px`,
-                    }}
-                    key={vItem.key}
-                    data-index={vItem.index}
-                  >
+                  <VirtualRow key={vItem.key} vItem={vItem}>
                     <RowSkeleton index={vItem.index} />
-                  </div>
+                  </VirtualRow>
                 );
               }
 
               return (
-                <div
-                  className={`absolute top-0 left-0 w-full border-b border-slate-900 ${vItem.index % 2 === 1 ? "bg-slate-900/40" : "bg-slate-900/20"}  `}
-                  style={{
-                    transform: `translateY(${vItem.start}px)`,
-                    height: `${vItem.size}px`,
-                  }}
-                  key={vItem.key}
-                  data-index={vItem.index}
-                >
-                  <div
-                    style={TRIP_GRID_STYLE}
-                    className="hidden w-full items-center p-3 md:py-2 md:px-4 md:grid gap-8 "
-                  >
-                    {TRIP_COLUMNS.map((col) => (
-                      <p className={cellClass(col)} key={col.key}>
-                        <span className={col.tone ? col.tone(trip) : ""}>
-                          {col.render(trip)}
-                        </span>
-                      </p>
-                    ))}
-                  </div>
+
+
+                <VirtualRow key={vItem.key} vItem={vItem} className={vItem.index % 2 === 1 ? "bg-slate-900/40" : "bg-slate-900/20"}>
+                  <TripRow trip={trip} />
                   <TripCard trip={trip} />
-                </div>
+                </VirtualRow>
               );
             })}
         </div>
