@@ -19,7 +19,7 @@ type Props = { filtersDebounced: Filters };
 export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [prevFilters, setPrevFilters] = useState(filtersDebounced);
-  const { error, loading, trips, totalCount, setIndexRange, tiempoTotal } =
+  const { error, loading, trips, totalCount, setIndexRange, tiempoTotal, phase } =
     useParquetQuery(filtersDebounced); //minmax
 
   if (filtersDebounced !== prevFilters) {
@@ -87,6 +87,7 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
         error={error}
         loading={loading}
         tripsArrLength={trips.tripsArr.length}
+        phase={phase}
       />
       <div ref={scrollRef} className="h-[85dvh] w-full mx-auto overflow-auto">
         <div
@@ -104,7 +105,7 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
           style={{ height: `${virtualizer.getTotalSize()}px` }}
         >
           {loading && totalCount === 0
-            ? Array.from({ length: 17 }).map((_, i) => (
+            ? Array.from({ length: 23 }).map((_, i) => (
               <div
                 key={i}
                 style={{

@@ -15,3 +15,5 @@ export interface Filters {
   passengerNumber: number;
   hideNegativeFare: boolean;
 }
+
+export type Phase = 'engine' | 'query' | 'ready';

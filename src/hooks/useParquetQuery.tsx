@@ -2,7 +2,8 @@ import * as comlink from "comlink";
 import type { DuckDBService } from "../workers/db.worker.ts";
 import { useEffect, useState, useMemo } from "react";
 import { construirWhere } from "../lib/filters.ts";
-import { type TaxiTrip, type Filters } from "../types";
+import { type TaxiTrip, type Filters, type Phase } from "../types";
+
 
 // 2. Instanciamos el worker con soporte para módulos ES (compatible con Vite / Webpack 5)
 const worker = new Worker(new URL("../workers/db.worker.ts", import.meta.url), {
@@ -20,6 +21,7 @@ export default function useParquetQuery(filters: Filters): {
   indexRange: number[];
   setIndexRange: React.Dispatch<React.SetStateAction<number[]>>;
   tiempoTotal: number | null;
+  phase: Phase
 } {
   const [indexRange, setIndexRange] = useState([0, 499]);
   const [trips, setTrips] = useState<{ tripsArr: TaxiTrip[]; range: number[] }>(
@@ -29,6 +31,7 @@ export default function useParquetQuery(filters: Filters): {
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [tiempoTotal, setTiempoTotal] = useState<number | null>(null);
+  const [phase, setPhase] = useState<Phase>('engine')
 
   const where = useMemo(() => construirWhere(filters), [filters]);
 
@@ -55,6 +58,22 @@ export default function useParquetQuery(filters: Filters): {
 
   useEffect(() => {
     let cancelado = false;
+    (async () => {
+      try {
+        await dbService.init()
+        if (cancelado) return;
+        setPhase('query')
+      } catch (err) {
+        if (cancelado) return;
+        console.error("Error starting DuckDB:", err);
+        setError("Could not start the database engine");
+      }
+    })()
+    return () => { cancelado = true }
+  }, [])
+
+  useEffect(() => {
+    let cancelado = false;
 
     async function cargarDatos() {
       try {
@@ -75,10 +94,11 @@ export default function useParquetQuery(filters: Filters): {
         if (cancelado) return;
         setTiempoTotal(Number(ms));
         setTrips({ tripsArr: resultado, range: indexRange });
+        setPhase('ready')
       } catch (err) {
         if (cancelado) return;
-        console.error("Error leyendo Parquet:", err);
-        setError("No se pudo cargar el archivo Parquet");
+        console.error("Error reading Parquet:", err);
+        setError("The Parquet file could not be loaded");
       } finally {
         if (!cancelado) setLoading(false);
       }
@@ -99,5 +119,6 @@ export default function useParquetQuery(filters: Filters): {
     indexRange,
     setIndexRange,
     tiempoTotal,
+    phase
   };
 }
