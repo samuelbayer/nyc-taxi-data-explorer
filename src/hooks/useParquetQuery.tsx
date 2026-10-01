@@ -1,49 +1,13 @@
 import * as comlink from "comlink";
 import type { DuckDBService } from "../workers/db.worker.ts";
 import { useEffect, useState, useMemo } from "react";
-import { ALL_PAYMENT_TYPES, MAX_MILES_DISTANCE } from "../lib/filters.ts";
-
+import { construirWhere } from "../lib/filters.ts";
 import { type TaxiTrip, type Filters } from "../types";
 
 // 2. Instanciamos el worker con soporte para módulos ES (compatible con Vite / Webpack 5)
 const worker = new Worker(new URL("../workers/db.worker.ts", import.meta.url), {
   type: "module",
 });
-
-function construirWhere(filters: Filters): string {
-  const [min, max] = filters.milesDistance;
-  const fareAmount =
-    filters.fareAmount > 0 ? `fare_cents >= ${filters.fareAmount * 100}` : "";
-  const hideNegativeFareAmount = filters.hideNegativeFare
-    ? "fare_cents >= 0"
-    : "";
-  const milesDistanceConditionMin =
-    min > 0 ? `distance_cent >= ${min * 100}` : "";
-  const milesDistanceConditionMax =
-    max < MAX_MILES_DISTANCE ? `distance_cent <= ${max * 100}` : "";
-
-  const paymentTypeCondition =
-    filters.paymentType === ALL_PAYMENT_TYPES
-      ? ""
-      : `payment_type = ${filters.paymentType}`;
-  const amountPassengerCondition =
-    filters.passengerNumber > 0
-      ? `passengers >= ${filters.passengerNumber}`
-      : "";
-
-  const cond: string[] = [
-    milesDistanceConditionMin,
-    milesDistanceConditionMax,
-    fareAmount,
-    paymentTypeCondition,
-    amountPassengerCondition,
-    hideNegativeFareAmount,
-  ];
-  const condFiltered = cond.filter((cond) => cond !== "");
-  // aquí cada filtro empuja su condición si procede
-
-  return condFiltered.length ? `WHERE ${condFiltered.join(" AND ")}` : "";
-}
 
 const dbService = comlink.wrap<DuckDBService>(worker);
 const parquetUrl = "/trips3.parquet";
