@@ -31,16 +31,19 @@ export const RowSkeleton: React.FC<RowSkeletonProps> = ({ index }) => {
           </div>
         ))}
       </div>
-      <div aria-hidden="true" className="md:hidden grid gap-8 p-6 grid-cols-2" style={{ height: CARD_HEIGHT }}>
+      <div
+        aria-hidden="true"
+        className="md:hidden grid gap-8 p-6 grid-cols-2"
+        style={{ height: CARD_HEIGHT }}
+      >
         {TRIP_COLUMNS.map((_, col) => (
           <div key={col} className="flex flex-col gap-2">
+            <div className="h-2 w-1/3 rounded bg-slate-700/60 animate-pulse" />
             <div
-              className="h-2 w-1/3 rounded bg-slate-700/60 animate-pulse"
+              className="h-4 rounded bg-slate-700/60 animate-pulse"
+              style={{ width: `${pseudoWidth(index, col)}%` }}
             />
-            <div className="h-4 rounded bg-slate-700/60 animate-pulse"
-              style={{ width: `${pseudoWidth(index, col)}%` }} />
           </div>
-
         ))}
       </div>
     </>
