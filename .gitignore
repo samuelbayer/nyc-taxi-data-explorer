@@ -26,3 +26,4 @@ dist-ssr
 # Datos: los .parquet no se suben al repo (pesan demasiado)
 public/*.parquet
 !public/trips3.parquet
+docs/desktop.ini
