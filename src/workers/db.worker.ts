@@ -67,7 +67,7 @@ export const duckDBService = {
         );
       })();
 
-      loadingFiles.set(fileName, cargando); // Marcamos como cargado
+      loadingFiles.set(fileName, cargando);
       cargando.catch(() => loadingFiles.delete(fileName));
     }
 

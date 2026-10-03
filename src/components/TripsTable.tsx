@@ -19,8 +19,15 @@ type Props = { filtersDebounced: Filters };
 export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [prevFilters, setPrevFilters] = useState(filtersDebounced);
-  const { error, loading, trips, totalCount, setIndexRange, tiempoTotal, phase } =
-    useParquetQuery(filtersDebounced); //minmax
+  const {
+    error,
+    loading,
+    trips,
+    totalCount,
+    setIndexRange,
+    tiempoTotal,
+    phase,
+  } = useParquetQuery(filtersDebounced);
 
   if (filtersDebounced !== prevFilters) {
     setPrevFilters(filtersDebounced);
@@ -28,7 +35,6 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
   }
 
   useEffect(() => {
-    // Reiniciamos el rango de índices al cambiar los filtros
     scrollRef.current?.scrollTo({ top: 0 });
   }, [filtersDebounced]);
 
@@ -70,7 +76,7 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
         if (prevMin === start && prevMax === end) return prev;
         return [start, end];
       });
-    }, 300); // E
+    }, 300);
 
     return () => {
       clearTimeout(handler);
@@ -106,17 +112,17 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
         >
           {loading && totalCount === 0
             ? Array.from({ length: 23 }).map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  height:
-                    window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
-                }}
-                className=" border-b border-slate-900"
-              >
-                <RowSkeleton index={i} />
-              </div>
-            ))
+                <div
+                  key={i}
+                  style={{
+                    height:
+                      window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
+                  }}
+                  className=" border-b border-slate-900"
+                >
+                  <RowSkeleton index={i} />
+                </div>
+              ))
             : null}
           {!error &&
             virtualItems.map((vItem) => {
@@ -131,9 +137,15 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
               }
 
               return (
-
-
-                <VirtualRow key={vItem.key} vItem={vItem} className={vItem.index % 2 === 1 ? "bg-slate-900/40" : "bg-slate-900/20"}>
+                <VirtualRow
+                  key={vItem.key}
+                  vItem={vItem}
+                  className={
+                    vItem.index % 2 === 1
+                      ? "bg-slate-900/40"
+                      : "bg-slate-900/20"
+                  }
+                >
                   <TripRow trip={trip} />
                   <TripCard trip={trip} />
                 </VirtualRow>

@@ -4,8 +4,6 @@ import { useEffect, useState, useMemo } from "react";
 import { construirWhere } from "../lib/filters.ts";
 import { type TaxiTrip, type Filters, type Phase } from "../types";
 
-
-// 2. Instanciamos el worker con soporte para módulos ES (compatible con Vite / Webpack 5)
 const worker = new Worker(new URL("../workers/db.worker.ts", import.meta.url), {
   type: "module",
 });
@@ -21,7 +19,7 @@ export default function useParquetQuery(filters: Filters): {
   indexRange: number[];
   setIndexRange: React.Dispatch<React.SetStateAction<number[]>>;
   tiempoTotal: number | null;
-  phase: Phase
+  phase: Phase;
 } {
   const [indexRange, setIndexRange] = useState([0, 499]);
   const [trips, setTrips] = useState<{ tripsArr: TaxiTrip[]; range: number[] }>(
@@ -31,7 +29,7 @@ export default function useParquetQuery(filters: Filters): {
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [tiempoTotal, setTiempoTotal] = useState<number | null>(null);
-  const [phase, setPhase] = useState<Phase>('engine')
+  const [phase, setPhase] = useState<Phase>("engine");
 
   const where = useMemo(() => construirWhere(filters), [filters]);
 
@@ -60,17 +58,19 @@ export default function useParquetQuery(filters: Filters): {
     let cancelado = false;
     (async () => {
       try {
-        await dbService.init()
+        await dbService.init();
         if (cancelado) return;
-        setPhase('query')
+        setPhase("query");
       } catch (err) {
         if (cancelado) return;
         console.error("Error starting DuckDB:", err);
         setError("Could not start the database engine");
       }
-    })()
-    return () => { cancelado = true }
-  }, [])
+    })();
+    return () => {
+      cancelado = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelado = false;
@@ -81,8 +81,6 @@ export default function useParquetQuery(filters: Filters): {
         setError(null);
 
         const inicio = performance.now();
-        console.log(where);
-        // Pedimos los datos al worker. 'resultado' ya es un Array de objetos JSON tipado como Usuario[]
         const resultado = (await dbService.queryParquet(
           parquetUrl,
           `SELECT pickup, duration_s, distance_cent, fare_cents, tip_cents, passengers, payment_type FROM 'trips3.parquet' ${where} LIMIT ${indexRange[1] - indexRange[0] + 1} OFFSET ${indexRange[0]}`,
@@ -94,7 +92,7 @@ export default function useParquetQuery(filters: Filters): {
         if (cancelado) return;
         setTiempoTotal(Number(ms));
         setTrips({ tripsArr: resultado, range: indexRange });
-        setPhase('ready')
+        setPhase("ready");
       } catch (err) {
         if (cancelado) return;
         console.error("Error reading Parquet:", err);
@@ -119,6 +117,6 @@ export default function useParquetQuery(filters: Filters): {
     indexRange,
     setIndexRange,
     tiempoTotal,
-    phase
+    phase,
   };
 }

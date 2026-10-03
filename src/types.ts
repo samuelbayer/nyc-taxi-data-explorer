@@ -16,4 +16,4 @@ export interface Filters {
   hideNegativeFare: boolean;
 }
 
-export type Phase = 'engine' | 'query' | 'ready';
+export type Phase = "engine" | "query" | "ready";

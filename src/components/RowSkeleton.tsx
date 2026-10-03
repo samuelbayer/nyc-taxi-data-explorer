@@ -3,15 +3,12 @@ import { TRIP_COLUMNS, TRIP_GRID_STYLE } from "../lib/columns";
 import { CARD_HEIGHT } from "./TripCard";
 
 type RowSkeletonProps = {
-  /** El índice de la fila virtual. Solo se usa para variar los anchos
-   *  y que no salgan 8 barras idénticas repetidas en pantalla. */
   index: number;
 };
 
-/** Anchos "aleatorios" pero deterministas por celda (0-99). */
 function pseudoWidth(index: number, col: number): number {
   const n = (index * 37 + col * 71) % 100;
-  return 45 + (n % 45); // entre 45% y 89%
+  return 45 + (n % 45); // 45%-89%
 }
 
 export const RowSkeleton: React.FC<RowSkeletonProps> = ({ index }) => {

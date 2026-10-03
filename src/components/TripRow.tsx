@@ -2,7 +2,6 @@ import { cellClass, TRIP_COLUMNS, TRIP_GRID_STYLE } from "../lib/columns";
 import type { TaxiTrip } from "../types";
 
 export function TripRow({ trip }: { trip: TaxiTrip }) {
-
   return (
     <div
       style={TRIP_GRID_STYLE}
@@ -16,5 +15,5 @@ export function TripRow({ trip }: { trip: TaxiTrip }) {
         </p>
       ))}
     </div>
-  )
+  );
 }
