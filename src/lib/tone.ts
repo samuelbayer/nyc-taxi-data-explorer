@@ -2,7 +2,7 @@ import { formatTypePayment } from "./format";
 
 export function moneyTone(cents: number): string {
   if (cents < 0) return " text-red-400";
-  if (cents === 0) return " text-slate-500";
+  if (cents === 0) return " text-slate-400";
   return "";
 }
 
