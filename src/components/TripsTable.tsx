@@ -112,17 +112,17 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
         >
           {loading && totalCount === 0
             ? Array.from({ length: 23 }).map((_, i) => (
-                <div
-                  key={i}
-                  style={{
-                    height:
-                      window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
-                  }}
-                  className=" border-b border-slate-900"
-                >
-                  <RowSkeleton index={i} />
-                </div>
-              ))
+              <div
+                key={i}
+                style={{
+                  height:
+                    window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
+                }}
+                className=" md:border-b border-slate-900"
+              >
+                <RowSkeleton index={i} />
+              </div>
+            ))
             : null}
           {!error &&
             virtualItems.map((vItem) => {
@@ -142,8 +142,8 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
                   vItem={vItem}
                   className={
                     vItem.index % 2 === 1
-                      ? "bg-slate-900/40"
-                      : "bg-slate-900/20"
+                      ? "md:bg-slate-900/40"
+                      : "md:bg-slate-900/20"
                   }
                 >
                   <TripRow trip={trip} />

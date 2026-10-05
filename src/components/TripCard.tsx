@@ -5,23 +5,25 @@ export const CARD_HEIGHT = 360;
 export function TripCard({ trip }: { trip: TaxiTrip }) {
   return (
     <div
-      className="md:hidden grid gap-8 p-6 grid-cols-2"
+      className="md:hidden px-2 py-3 "
       style={{ height: CARD_HEIGHT }}
     >
-      {TRIP_COLUMNS.map((col) => {
-        return (
-          <div key={col.key}>
-            <p className="text-xs uppercase tracking-wide text-slate-400  ">
-              {col.label}
-            </p>
-            <p className={col.muted ? " text-slate-400" : ""} key={col.key}>
-              <span className={col.tone ? col.tone(trip) : ""}>
-                {col.render(trip)}
-              </span>
-            </p>
-          </div>
-        );
-      })}
+      <div className='h-full bg-slate-900 rounded-xl grid-cols-2 grid gap-6 p-4 border border-slate-800'>
+        {TRIP_COLUMNS.map((col) => {
+          return (
+            <div key={col.key}>
+              <p className="text-xs uppercase tracking-wide text-slate-400  ">
+                {col.label}
+              </p>
+              <p className={col.muted ? " text-slate-400" : ""} key={col.key}>
+                <span className={col.tone ? col.tone(trip) : ""}>
+                  {col.render(trip)}
+                </span>
+              </p>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
