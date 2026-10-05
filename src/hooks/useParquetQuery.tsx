@@ -43,7 +43,7 @@ export default function useParquetQuery(filters: Filters): {
         setTotalCount(Number(count[0].total));
       } catch (err) {
         if (cancelado) return;
-        console.error("Error leyendo ParquetTableCount:", err);
+        console.error("Error reading ParquetTableCount:", err);
       }
     }
 

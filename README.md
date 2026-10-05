@@ -43,7 +43,7 @@ Mistakes I made along the way and how I fixed them:
 - **Slow first load:** Before seeing any row the entire Parquet (25 MB) needs to be downloaded and the DuckDB engine (7 MB). With Fast 4G the first visit takes around 37 seconds, after that it only takes around 2 seconds thanks to the cache.
 - **Scrollbar reach:** Chrome limits the height of an element to about 33.5 million pixels, so scrolling to the bottom only reaches the 760,000 row in desktop (93,000 in mobile). With filters the total amount is less and can be shown fully.
 - **Deep pagination with filters:** With `LIMIT`/`OFFSET` DuckDB has to go through all of the previous rows that match the filter criteria. Without filters it takes around 45 ms at any depth, with a fare filter it takes about 21 ms near the top and around 250 ms to go to the bottom at row 760k.
-- **Accessibility:** Only the basics so far. The virtual table isn't exposed as a table to the screen readers.
+- **Accessibility:** Lighthouse accessibility: 100. The virtual table still isn't exposed as a table to screen readers.
 - **Outliers in the data:** There are some distances up to 269,097 miles. I left them like that to show the original dataset.  
 
 ## Tech Stack
