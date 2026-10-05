@@ -25,6 +25,11 @@ export const ALIGN_CLASS = {
   right: "text-right tabular-nums",
 } as const;
 
+export const JUSTIFY_CLASS = {
+  left: "justify-start",
+  right: "justify-end"
+} as const;
+
 export const TRIP_COLUMNS: Column[] = [
   {
     key: "distance",

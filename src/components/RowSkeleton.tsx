@@ -1,5 +1,5 @@
 import React from "react";
-import { TRIP_COLUMNS, TRIP_GRID_STYLE } from "../lib/columns";
+import { JUSTIFY_CLASS, TRIP_COLUMNS, TRIP_GRID_STYLE } from "../lib/columns";
 import { CARD_HEIGHT } from "./TripCard";
 
 type RowSkeletonProps = {
@@ -16,14 +16,14 @@ export const RowSkeleton: React.FC<RowSkeletonProps> = ({ index }) => {
     <>
       <div
         aria-hidden="true"
-        className="hidden p-3 md:py-2 md:px-4 md:grid gap-4 items-center h-full"
+        className="hidden p-3 md:py-2 md:px-4 md:grid gap-8 items-center h-full"
         style={TRIP_GRID_STYLE}
       >
-        {TRIP_COLUMNS.map((_, col) => (
-          <div key={col} className="flex items-center justify-center h-full">
+        {TRIP_COLUMNS.map((col, i) => (
+          <div key={i} className={`flex items-center h-full ${JUSTIFY_CLASS[col.align]}`}>
             <div
               className="h-3 rounded bg-slate-700/60 animate-pulse"
-              style={{ width: `${pseudoWidth(index, col)}%` }}
+              style={{ width: `${pseudoWidth(index, i)}%` }}
             />
           </div>
         ))}

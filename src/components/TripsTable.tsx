@@ -95,7 +95,7 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
         tripsArrLength={trips.tripsArr.length}
         phase={phase}
       />
-      <div ref={scrollRef} className="h-[85dvh] w-full mx-auto overflow-auto">
+      <div ref={scrollRef} className="h-[85dvh] w-full mx-auto overflow-auto [scrollbar-gutter:stable]">
         <div
           style={TRIP_GRID_STYLE}
           className="hidden will-change-transform text-xs uppercase tracking-wide text-slate-400 border-b border-slate-700 bg-slate-950 z-10 sticky top-0 md:grid gap-8 px-3 md:px-4 py-4"
