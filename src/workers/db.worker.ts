@@ -50,7 +50,7 @@ export const duckDBService = {
 
     const activeDb = db;
     if (!activeDb) {
-      throw new Error("DuckDB no se pudo inicializar");
+      throw new Error("DuckDB could't be initialized");
     }
     const BASE = import.meta.env.VITE_PARQUET_BASE || location.origin;
     const fileName = relativePath.split("/").pop() ?? "trips3.parquet";

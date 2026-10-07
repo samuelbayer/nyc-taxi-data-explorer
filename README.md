@@ -23,7 +23,7 @@ Rendering 3.7M rows in a browser hits three limits at once: download size, the w
 - **Web worker + Comlink:** Allows the browser to execute the SQL queries (DuckDB) in another thread without freezing the interface. Comlink allows calling the worker as if they were normal async functions.
 - **DuckDB-WASM:** An SQL engine that runs in the browser (WebAssembly). The filters become `WHERE` and each block of 500 rows a `LIMIT/OFFSET`, with a `COUNT(*)` with the same `WHERE` that gives the scrollbar the real total.
 - **Parquet:** Columnar and compressed: DuckDB only reads the columns the SQL query asks. It's also split into row groups with the minimum and maximum of each column, and because the file is sorted by date, DuckDB can skip entire groups.
-- **TanStack Virtual:** Renders only a few rows (20-30) even though there are 3.7M, in the DOM only those rows exist and a little margin while the scroll container keeps the height of the full list.
+- **TanStack Virtual:** Renders only a few rows (20-30) even though there are 3.7M, in the DOM only those rows exist and a little margin while the scroll container keeps a scroll height for the full list (capped by the browser, see Known Limitations).
 
 ## Key Decisions
 
@@ -35,13 +35,13 @@ Rendering 3.7M rows in a browser hits three limits at once: download size, the w
 ## Things I Got Wrong
 
 Mistakes I made along the way and how I fixed them: 
-- **Client-side filtering:** At first the filters only ran in JavaScript over the 90 rows that were already loaded. That only hid rows on screen but didn't filter the 3.7M. The scroll also kept using the total without filtering. I moved filtering into `WHERE` from SQL , with a filtered `COUNT(*)` .
-- **One query per scrolled row:** The fetch window was recalculated from the visible rows, so every row you scrolled fired a new query. They would accumulate and when you stopped each old responses kept overwriting each other. I fixed it by implementing blocks of 500 rows each and discarding stale responses that arrive after a newer request.
+- **Client-side filtering:** At first the filters only ran in JavaScript over the 90 rows that were already loaded. That only hid rows on screen but didn't filter the 3.7M. The scroll also kept using the total without filtering. I moved filtering into `WHERE` from SQL with a filtered `COUNT(*)` .
+- **One query per scrolled row:** The fetch window was recalculated from the visible rows, so every row you scrolled fired a new query. They would accumulate and when you stopped each old responses kept overwriting newer ones. I fixed it by implementing blocks of 500 rows each and discarding stale responses that arrive after a newer request.
 
 ## Known Limitations
 
 - **Slow first load:** Before seeing any row the entire Parquet (25 MB) needs to be downloaded and the DuckDB engine (7 MB). With Fast 4G the first visit takes around 37 seconds, after that it only takes around 2 seconds thanks to the cache.
-- **Scrollbar reach:** Chrome limits the height of an element to about 33.5 million pixels, so scrolling to the bottom only reaches the 760,000 row in desktop (93,000 in mobile). With filters the total amount is less and can be shown fully.
+- **Scrollbar reach:** Chrome limits the height of an element to about 33.5 million pixels, so scrolling to the bottom only reaches 760,000 row in desktop (93,000 in mobile). With filters the total amount is less and can be shown fully.
 - **Deep pagination with filters:** With `LIMIT`/`OFFSET` DuckDB has to go through all of the previous rows that match the filter criteria. Without filters it takes around 45 ms at any depth, with a fare filter it takes about 21 ms near the top and around 250 ms to go to the bottom at row 760k.
 - **Accessibility:** Lighthouse accessibility: 100. The virtual table still isn't exposed as a table to screen readers.
 - **Outliers in the data:** There are some distances up to 269,097 miles. I left them like that to show the original dataset.  
@@ -68,5 +68,5 @@ pnpm test    # run the unit tests
 
 - **Hybrid loading:** Takes a small portion using HTTP range reads of the Parquet that is shown first, and the full download in the background and cached. That way you don't have to wait until all the Parquet downloads to see some rows.
 - **Scaled scrolling + keyset pagination:** Make the scroll element able to reach all of the 3.7M rows and fix the slower queries with filters.
-- **Full accessibility:** Make the virtual table usable for screen readers keyboard nagivation.
+- **Full accessibility:** Make the virtual table usable for screen readers and keyboard nagivation.
 - **Extract effects into custom hooks:** Improve the architecture separating effects from TripsTable into custom hooks.
