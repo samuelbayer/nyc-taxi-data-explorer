@@ -5,10 +5,10 @@ export function TripRow({ trip }: { trip: TaxiTrip }) {
   return (
     <div
       style={TRIP_GRID_STYLE}
-      className="hidden w-full items-center p-3 md:py-2 md:px-4 md:grid gap-8 "
+      className="hidden w-full items-center p-3 text-sm xl:py-2 xl:px-4 xl:grid gap-4 2xl:gap-8"
     >
       {TRIP_COLUMNS.map((col) => (
-        <p className={cellClass(col)} key={col.key}>
+        <p className={cellClass(col)} key={col.key} title={col.render(trip)}>
           <span className={col.tone ? col.tone(trip) : ""}>
             {col.render(trip)}
           </span>

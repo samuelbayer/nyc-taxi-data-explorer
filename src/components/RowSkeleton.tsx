@@ -16,7 +16,7 @@ export const RowSkeleton: React.FC<RowSkeletonProps> = ({ index }) => {
     <>
       <div
         aria-hidden="true"
-        className="hidden p-3 md:py-2 md:px-4 md:grid gap-8 items-center h-full"
+        className="hidden p-3 xl:py-2 xl:px-4 xl:grid gap-4 2xl:gap-8 items-center h-full"
         style={TRIP_GRID_STYLE}
       >
         {TRIP_COLUMNS.map((col, i) => (
@@ -30,7 +30,7 @@ export const RowSkeleton: React.FC<RowSkeletonProps> = ({ index }) => {
       </div>
       <div
         aria-hidden="true"
-        className="md:hidden px-2 py-3"
+        className="xl:hidden px-2 py-3"
         style={{ height: CARD_HEIGHT }}
       >
         <div className='h-full bg-slate-900 rounded-xl grid-cols-2 grid gap-6 p-4 border border-slate-800'>

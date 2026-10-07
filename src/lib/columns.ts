@@ -69,7 +69,7 @@ export const TRIP_COLUMNS: Column[] = [
     key: "pickup",
     label: "Pickup",
     align: "left",
-    width: 2,
+    width: 2.2,
     muted: true,
     render: (trip) => formatDateTime(trip.pickup),
   },
@@ -77,7 +77,7 @@ export const TRIP_COLUMNS: Column[] = [
     key: "dropoff",
     label: "Dropoff",
     align: "left",
-    width: 2,
+    width: 2.2,
     muted: true,
     render: (trip) => formatDropOffDate(trip.pickup, trip.duration_s),
   },
@@ -94,7 +94,7 @@ export const TRIP_COLUMNS: Column[] = [
     label: "Payment",
     align: "left",
     muted: true,
-    width: 1.5,
+    width: 1.3,
     tone: (trip) => paymentTone(trip.payment_type),
     render: (trip) => formatTypePayment(trip.payment_type),
   },
@@ -106,5 +106,5 @@ export const TRIP_GRID_STYLE = {
 };
 
 export function cellClass(col: Column) {
-  return ALIGN_CLASS[col.align] + (col.muted ? " text-slate-400" : "");
+  return "truncate " + ALIGN_CLASS[col.align] + (col.muted ? " text-slate-400" : "");
 }

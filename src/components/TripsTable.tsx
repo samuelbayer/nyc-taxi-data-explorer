@@ -12,7 +12,9 @@ import { TripRow } from "./TripRow.tsx";
 import { VirtualRow } from "./VirtualRow.tsx";
 
 const BLOQUE = 500;
-export const MOBILE_BREAKPOINT = 768;
+// Must match Tailwind's `xl` breakpoint (80rem = 1280px), used by the row/card classes.
+// Below it the 8-column grid no longer fits next to the filters panel.
+export const MOBILE_BREAKPOINT = 1280;
 
 type Props = { filtersDebounced: Filters };
 
@@ -98,7 +100,7 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
       <div ref={scrollRef} className="h-[85dvh] w-full mx-auto overflow-auto [scrollbar-gutter:stable]">
         <div
           style={TRIP_GRID_STYLE}
-          className="hidden will-change-transform text-xs uppercase tracking-wide text-slate-400 border-b border-slate-700 bg-slate-950 z-10 sticky top-0 md:grid gap-8 px-3 md:px-4 py-4"
+          className="hidden will-change-transform text-xs uppercase tracking-wide text-slate-400 border-b border-slate-700 bg-slate-950 z-10 sticky top-0 xl:grid gap-4 2xl:gap-8 px-3 xl:px-4 py-4"
         >
           {TRIP_COLUMNS.map((col) => (
             <div className={ALIGN_CLASS[col.align]} key={col.key}>
@@ -118,7 +120,7 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
                   height:
                     window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
                 }}
-                className=" md:border-b border-slate-900"
+                className="xl:border-b border-slate-900"
               >
                 <RowSkeleton index={i} />
               </div>
@@ -142,8 +144,8 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
                   vItem={vItem}
                   className={
                     vItem.index % 2 === 1
-                      ? "md:bg-slate-900/40"
-                      : "md:bg-slate-900/20"
+                      ? "xl:bg-slate-900/40"
+                      : "xl:bg-slate-900/20"
                   }
                 >
                   <TripRow trip={trip} />
