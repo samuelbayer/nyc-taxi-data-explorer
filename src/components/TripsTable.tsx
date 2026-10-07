@@ -95,10 +95,10 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
         tripsArrLength={trips.tripsArr.length}
         phase={phase}
       />
-      <div ref={scrollRef} className="h-[85dvh] w-full mx-auto overflow-auto [scrollbar-gutter:stable]">
+      <div ref={scrollRef} className="mx-auto h-[85dvh] w-full overflow-auto rounded-md border border-rule bg-paper [scrollbar-gutter:stable]">
         <div
           style={TRIP_GRID_STYLE}
-          className="hidden will-change-transform text-xs uppercase tracking-wide text-slate-400 border-b border-slate-700 bg-slate-950 z-10 sticky top-0 md:grid gap-8 px-3 md:px-4 py-4"
+          className="hidden will-change-transform text-sm font-semibold text-muted border-b border-rule bg-paper z-10 sticky top-0 md:grid gap-6 px-3 md:px-4 py-4"
         >
           {TRIP_COLUMNS.map((col) => (
             <div className={ALIGN_CLASS[col.align]} key={col.key}>
@@ -118,7 +118,7 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
                   height:
                     window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
                 }}
-                className=" md:border-b border-slate-900"
+                className=" md:border-b border-rule/50"
               >
                 <RowSkeleton index={i} />
               </div>
@@ -142,8 +142,8 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
                   vItem={vItem}
                   className={
                     vItem.index % 2 === 1
-                      ? "md:bg-slate-900/40"
-                      : "md:bg-slate-900/20"
+                      ? "md:bg-ink/[0.04]"
+                      : ""
                   }
                 >
                   <TripRow trip={trip} />

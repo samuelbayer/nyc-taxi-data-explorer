@@ -69,7 +69,7 @@ export const TRIP_COLUMNS: Column[] = [
     key: "pickup",
     label: "Pickup",
     align: "left",
-    width: 2,
+    width: 2.4,
     muted: true,
     render: (trip) => formatDateTime(trip.pickup),
   },
@@ -77,7 +77,7 @@ export const TRIP_COLUMNS: Column[] = [
     key: "dropoff",
     label: "Dropoff",
     align: "left",
-    width: 2,
+    width: 2.4,
     muted: true,
     render: (trip) => formatDropOffDate(trip.pickup, trip.duration_s),
   },
@@ -106,5 +106,9 @@ export const TRIP_GRID_STYLE = {
 };
 
 export function cellClass(col: Column) {
-  return ALIGN_CLASS[col.align] + (col.muted ? " text-slate-400" : "");
+  return (
+    ALIGN_CLASS[col.align] +
+    " whitespace-nowrap text-[15px]" +
+    (col.muted ? " text-muted" : "")
+  );
 }

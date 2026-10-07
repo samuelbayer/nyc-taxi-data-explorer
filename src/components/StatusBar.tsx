@@ -8,6 +8,8 @@ const phaseLabels: Record<Phase, string> = {
   ready: "System ready",
 };
 
+const METER = "mb-3 rounded-md bg-meter px-5 py-4 text-cab";
+
 export function StatusBar({
   totalCount,
   firstIndex,
@@ -40,21 +42,57 @@ export function StatusBar({
     };
   }, [phase]);
 
-  if (error) return <h2 className="text-red-400">{error}</h2>;
+  if (error)
+    return (
+      <div className={METER}>
+        <p className="font-meter text-lg text-[#ffb4ab]">{error}</p>
+      </div>
+    );
   if (loading && tripsArrLength === 0)
     return (
-      <h2 className="text-slate-300">
-        {phaseLabels[phase]} {seconds}s
-      </h2>
+      <div className={METER}>
+        <p className="font-meter text-lg">
+          {phaseLabels[phase]} {seconds}s
+        </p>
+      </div>
     );
 
-  return totalCount === 0 ? (
-    <h2 className="hidden md:block">No trips match these filters</h2>
-  ) : (
-    <h2 className="hidden md:block">
-      Showing rows {formatInteger(firstIndex + 1)} to{" "}
-      {formatInteger(lastIndex + 1)} of <i> {formatInteger(totalCount)}</i> in{" "}
-      {formatInteger(tiempoTotal as number)}ms
-    </h2>
+  if (totalCount === 0)
+    return (
+      <div className={METER}>
+        <p className="font-meter text-lg">No trips match these filters</p>
+        <p className="mt-1 text-sm text-white/70">
+          Lower the minimum fare or widen the distance to see trips again.
+        </p>
+      </div>
+    );
+
+  return (
+    <div
+      className={`${METER} flex flex-wrap items-end justify-between gap-x-10 gap-y-3`}
+    >
+      <div>
+        <p className="font-meter text-4xl font-bold leading-none">
+          {formatInteger(totalCount)}
+        </p>
+        <p className="mt-2 text-sm text-white/70">trips match these filters</p>
+      </div>
+      <dl className="flex gap-8 text-sm">
+        <div className="hidden md:block">
+          <dt className="text-white/70">Showing rows</dt>
+          <dd className="font-meter text-lg font-medium">
+            {formatInteger(firstIndex + 1)} to {formatInteger(lastIndex + 1)}
+          </dd>
+        </div>
+        {tiempoTotal !== null && (
+          <div>
+            <dt className="text-white/70">Query time</dt>
+            <dd className="font-meter text-lg font-medium">
+              {formatInteger(tiempoTotal)} ms
+            </dd>
+          </div>
+        )}
+      </dl>
+    </div>
   );
 }

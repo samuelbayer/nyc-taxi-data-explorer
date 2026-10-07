@@ -8,14 +8,14 @@ export function TripCard({ trip }: { trip: TaxiTrip }) {
       className="md:hidden px-2 py-3 "
       style={{ height: CARD_HEIGHT }}
     >
-      <div className='h-full bg-slate-900 rounded-xl grid-cols-2 grid gap-6 p-4 border border-slate-800'>
+      <div className='h-full bg-white rounded-md grid-cols-2 grid gap-6 p-4 border border-rule'>
         {TRIP_COLUMNS.map((col) => {
           return (
             <div key={col.key}>
-              <p className="text-xs uppercase tracking-wide text-slate-400  ">
+              <p className="text-sm text-muted">
                 {col.label}
               </p>
-              <p className={col.muted ? " text-slate-400" : ""} key={col.key}>
+              <p className={col.muted ? "text-muted" : ""} key={col.key}>
                 <span className={col.tone ? col.tone(trip) : ""}>
                   {col.render(trip)}
                 </span>
