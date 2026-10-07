@@ -50,7 +50,7 @@ export const duckDBService = {
 
     const activeDb = db;
     if (!activeDb) {
-      throw new Error("DuckDB could't be initialized");
+      throw new Error("DuckDB couldn't be initialized");
     }
     const BASE = import.meta.env.VITE_PARQUET_BASE || location.origin;
     const fileName = relativePath.split("/").pop() ?? "trips3.parquet";
@@ -75,13 +75,17 @@ export const duckDBService = {
 
     const conn = await activeDb.connect();
 
-    const query = sqlQuery ? sqlQuery : `SELECT * FROM '${fullUrl}' LIMIT 100`;
+     try {
 
-    const result = await conn.query(query);
+      const query = sqlQuery ? sqlQuery : `SELECT * FROM '${fullUrl}' LIMIT 100`;
+         const result = await conn.query(query);
+    return result.toArray().map((row) => row.toJSON() as T);
+    } finally {
+       
 
     await conn.close();
+    }
 
-    return result.toArray().map((row) => row.toJSON() as T);
   },
 
   async getParquetTableCount(relativePath: string, where: string) {
