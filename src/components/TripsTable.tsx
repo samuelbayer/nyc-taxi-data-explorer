@@ -97,7 +97,10 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
         tripsArrLength={trips.tripsArr.length}
         phase={phase}
       />
-      <div ref={scrollRef} className="h-[85dvh] w-full mx-auto overflow-auto [scrollbar-gutter:stable]">
+      <div
+        ref={scrollRef}
+        className="h-[85dvh] w-full mx-auto overflow-auto [scrollbar-gutter:stable]"
+      >
         <div
           style={TRIP_GRID_STYLE}
           className="hidden will-change-transform text-xs uppercase tracking-wide text-slate-400 border-b border-slate-700 bg-slate-950 z-10 sticky top-0 xl:grid gap-4 2xl:gap-8 px-3 xl:px-4 py-4"
@@ -114,17 +117,17 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
         >
           {loading && totalCount === 0
             ? Array.from({ length: 23 }).map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  height:
-                    window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
-                }}
-                className="xl:border-b border-slate-900"
-              >
-                <RowSkeleton index={i} />
-              </div>
-            ))
+                <div
+                  key={i}
+                  style={{
+                    height:
+                      window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
+                  }}
+                  className="xl:border-b border-slate-900"
+                >
+                  <RowSkeleton index={i} />
+                </div>
+              ))
             : null}
           {!error &&
             virtualItems.map((vItem) => {

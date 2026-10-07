@@ -27,7 +27,7 @@ export const ALIGN_CLASS = {
 
 export const JUSTIFY_CLASS = {
   left: "justify-start",
-  right: "justify-end"
+  right: "justify-end",
 } as const;
 
 export const TRIP_COLUMNS: Column[] = [
@@ -106,5 +106,7 @@ export const TRIP_GRID_STYLE = {
 };
 
 export function cellClass(col: Column) {
-  return "truncate " + ALIGN_CLASS[col.align] + (col.muted ? " text-slate-400" : "");
+  return (
+    "truncate " + ALIGN_CLASS[col.align] + (col.muted ? " text-slate-400" : "")
+  );
 }
