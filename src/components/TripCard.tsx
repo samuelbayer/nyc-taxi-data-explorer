@@ -6,7 +6,7 @@ export const CARD_HEIGHT = 360;
 export function TripCard({ trip }: { trip: TaxiTrip }) {
   const { t } = useI18n();
   return (
-    <div className="md:hidden px-2 py-3 " style={{ height: CARD_HEIGHT }}>
+    <div className="xl:hidden px-2 py-3" style={{ height: CARD_HEIGHT }}>
       <div className="h-full bg-surface rounded-md grid-cols-2 grid gap-6 p-4 border border-rule">
         {TRIP_COLUMNS.map((col) => {
           return (

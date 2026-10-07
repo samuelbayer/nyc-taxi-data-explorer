@@ -13,7 +13,9 @@ import { VirtualRow } from "./VirtualRow.tsx";
 import { useI18n } from "../i18n/context";
 
 const BLOQUE = 500;
-export const MOBILE_BREAKPOINT = 768;
+// Must match Tailwind's `xl` breakpoint (80rem = 1280px), used by the row/card classes.
+// Below it the 8-column grid no longer fits next to the filters panel.
+export const MOBILE_BREAKPOINT = 1280;
 
 type Props = { filtersDebounced: Filters };
 
@@ -103,7 +105,7 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
       >
         <div
           style={TRIP_GRID_STYLE}
-          className="hidden will-change-transform whitespace-nowrap text-sm font-semibold text-muted border-b border-rule bg-paper z-10 sticky top-0 md:grid gap-4 px-3 md:px-4 py-4"
+          className="hidden will-change-transform whitespace-nowrap text-sm font-semibold text-muted border-b border-rule bg-paper z-10 sticky top-0 xl:grid gap-4 2xl:gap-8 px-3 xl:px-4 py-4"
         >
           {TRIP_COLUMNS.map((col) => (
             <div className={ALIGN_CLASS[col.align]} key={col.key}>
@@ -123,7 +125,7 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
                     height:
                       window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
                   }}
-                  className=" md:border-b border-rule/50"
+                  className="xl:border-b border-rule/50"
                 >
                   <RowSkeleton index={i} />
                 </div>
@@ -145,7 +147,7 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
                 <VirtualRow
                   key={vItem.key}
                   vItem={vItem}
-                  className={vItem.index % 2 === 1 ? "md:bg-ink/[0.04]" : ""}
+                  className={vItem.index % 2 === 1 ? "xl:bg-ink/[0.04]" : ""}
                 >
                   <TripRow trip={trip} />
                   <TripCard trip={trip} />

@@ -64,14 +64,14 @@ export const TRIP_COLUMNS: Column[] = [
   {
     key: "pickup",
     align: "left",
-    width: 2.1,
+    width: 2.2,
     muted: true,
     render: (trip) => formatDateTime(trip.pickup),
   },
   {
     key: "dropoff",
     align: "left",
-    width: 2.1,
+    width: 2.2,
     muted: true,
     render: (trip) => formatDropOffDate(trip.pickup, trip.duration_s),
   },
@@ -102,7 +102,6 @@ export function cellClass(col: Column) {
     ALIGN_CLASS[col.align] +
     // Text can be cut with an ellipsis; numbers must never be.
     (col.align === "left" ? " truncate" : " whitespace-nowrap") +
-    " text-[15px]" +
     (col.muted ? " text-muted" : "")
   );
 }
