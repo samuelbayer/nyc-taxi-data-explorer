@@ -75,17 +75,15 @@ export const duckDBService = {
 
     const conn = await activeDb.connect();
 
-     try {
-
-      const query = sqlQuery ? sqlQuery : `SELECT * FROM '${fullUrl}' LIMIT 100`;
-         const result = await conn.query(query);
-    return result.toArray().map((row) => row.toJSON() as T);
+    try {
+      const query = sqlQuery
+        ? sqlQuery
+        : `SELECT * FROM '${fullUrl}' LIMIT 100`;
+      const result = await conn.query(query);
+      return result.toArray().map((row) => row.toJSON() as T);
     } finally {
-       
-
-    await conn.close();
+      await conn.close();
     }
-
   },
 
   async getParquetTableCount(relativePath: string, where: string) {
