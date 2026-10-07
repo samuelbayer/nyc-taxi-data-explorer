@@ -9,10 +9,10 @@ import {
   formatPassengerNumber,
 } from "./format";
 import { moneyTone, paymentTone } from "./tone";
+import type { ColumnKey } from "../i18n/messages";
 
 type Column = {
-  key: string;
-  label: string;
+  key: ColumnKey;
   align: "left" | "right";
   width: number;
   muted?: boolean;
@@ -27,13 +27,12 @@ export const ALIGN_CLASS = {
 
 export const JUSTIFY_CLASS = {
   left: "justify-start",
-  right: "justify-end"
+  right: "justify-end",
 } as const;
 
 export const TRIP_COLUMNS: Column[] = [
   {
     key: "distance",
-    label: "Distance",
     align: "right",
     width: 1,
     muted: false,
@@ -41,7 +40,6 @@ export const TRIP_COLUMNS: Column[] = [
   },
   {
     key: "fare",
-    label: "Fare",
     align: "right",
     width: 1,
     muted: false,
@@ -50,7 +48,6 @@ export const TRIP_COLUMNS: Column[] = [
   },
   {
     key: "tip",
-    label: "Tip",
     align: "right",
     width: 1,
     muted: false,
@@ -59,42 +56,37 @@ export const TRIP_COLUMNS: Column[] = [
   },
   {
     key: "duration",
-    label: "Duration",
     align: "right",
-    width: 1.2,
+    width: 1.1,
     muted: false,
     render: (trip) => formatDuration(trip.duration_s),
   },
   {
     key: "pickup",
-    label: "Pickup",
     align: "left",
-    width: 2.4,
+    width: 2.1,
     muted: true,
     render: (trip) => formatDateTime(trip.pickup),
   },
   {
     key: "dropoff",
-    label: "Dropoff",
     align: "left",
-    width: 2.4,
+    width: 2.1,
     muted: true,
     render: (trip) => formatDropOffDate(trip.pickup, trip.duration_s),
   },
   {
     key: "passengers",
-    label: "Passengers",
     align: "right",
     muted: true,
-    width: 0.8,
+    width: 1.2,
     render: (trip) => formatPassengerNumber(trip.passengers),
   },
   {
     key: "payment",
-    label: "Payment",
     align: "left",
     muted: true,
-    width: 1.5,
+    width: 2,
     tone: (trip) => paymentTone(trip.payment_type),
     render: (trip) => formatTypePayment(trip.payment_type),
   },
@@ -108,7 +100,9 @@ export const TRIP_GRID_STYLE = {
 export function cellClass(col: Column) {
   return (
     ALIGN_CLASS[col.align] +
-    " whitespace-nowrap text-[15px]" +
+    // Text can be cut with an ellipsis; numbers must never be.
+    (col.align === "left" ? " truncate" : " whitespace-nowrap") +
+    " text-[15px]" +
     (col.muted ? " text-muted" : "")
   );
 }

@@ -2,7 +2,12 @@ import * as comlink from "comlink";
 import type { DuckDBService } from "../workers/db.worker.ts";
 import { useEffect, useState, useMemo } from "react";
 import { construirWhere } from "../lib/filters.ts";
-import { type TaxiTrip, type Filters, type Phase } from "../types";
+import {
+  type TaxiTrip,
+  type Filters,
+  type Phase,
+  type ErrorCode,
+} from "../types";
 
 const worker = new Worker(new URL("../workers/db.worker.ts", import.meta.url), {
   type: "module",
@@ -14,7 +19,7 @@ const parquetUrl = "/trips3.parquet";
 export default function useParquetQuery(filters: Filters): {
   trips: { tripsArr: TaxiTrip[]; range: number[] };
   loading: boolean;
-  error: string | null;
+  error: ErrorCode | null;
   totalCount: number;
   indexRange: number[];
   setIndexRange: React.Dispatch<React.SetStateAction<number[]>>;
@@ -26,7 +31,7 @@ export default function useParquetQuery(filters: Filters): {
     { tripsArr: [], range: [0, 499] },
   );
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ErrorCode | null>(null);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [tiempoTotal, setTiempoTotal] = useState<number | null>(null);
   const [phase, setPhase] = useState<Phase>("engine");
@@ -64,7 +69,7 @@ export default function useParquetQuery(filters: Filters): {
       } catch (err) {
         if (cancelado) return;
         console.error("Error starting DuckDB:", err);
-        setError("Could not start the database engine");
+        setError("engine");
       }
     })();
     return () => {
@@ -96,7 +101,7 @@ export default function useParquetQuery(filters: Filters): {
       } catch (err) {
         if (cancelado) return;
         console.error("Error reading Parquet:", err);
-        setError("The Parquet file could not be loaded");
+        setError("parquet");
       } finally {
         if (!cancelado) setLoading(false);
       }

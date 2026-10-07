@@ -17,3 +17,5 @@ export interface Filters {
 }
 
 export type Phase = "engine" | "query" | "ready";
+
+export type ErrorCode = "engine" | "parquet";

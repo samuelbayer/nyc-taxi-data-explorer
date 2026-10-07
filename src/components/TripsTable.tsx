@@ -10,6 +10,7 @@ import { StatusBar } from "./StatusBar.tsx";
 import { CARD_HEIGHT, TripCard } from "./TripCard.tsx";
 import { TripRow } from "./TripRow.tsx";
 import { VirtualRow } from "./VirtualRow.tsx";
+import { useI18n } from "../i18n/context";
 
 const BLOQUE = 500;
 export const MOBILE_BREAKPOINT = 768;
@@ -17,6 +18,7 @@ export const MOBILE_BREAKPOINT = 768;
 type Props = { filtersDebounced: Filters };
 
 export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
+  const { t } = useI18n();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [prevFilters, setPrevFilters] = useState(filtersDebounced);
   const {
@@ -95,14 +97,17 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
         tripsArrLength={trips.tripsArr.length}
         phase={phase}
       />
-      <div ref={scrollRef} className="mx-auto h-[85dvh] w-full overflow-auto rounded-md border border-rule bg-paper [scrollbar-gutter:stable]">
+      <div
+        ref={scrollRef}
+        className="mx-auto h-[85dvh] w-full overflow-auto rounded-md border border-rule bg-paper [scrollbar-gutter:stable]"
+      >
         <div
           style={TRIP_GRID_STYLE}
-          className="hidden will-change-transform text-sm font-semibold text-muted border-b border-rule bg-paper z-10 sticky top-0 md:grid gap-6 px-3 md:px-4 py-4"
+          className="hidden will-change-transform whitespace-nowrap text-sm font-semibold text-muted border-b border-rule bg-paper z-10 sticky top-0 md:grid gap-4 px-3 md:px-4 py-4"
         >
           {TRIP_COLUMNS.map((col) => (
             <div className={ALIGN_CLASS[col.align]} key={col.key}>
-              {col.label}
+              {t.columns[col.key]}
             </div>
           ))}
         </div>
@@ -112,17 +117,17 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
         >
           {loading && totalCount === 0
             ? Array.from({ length: 23 }).map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  height:
-                    window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
-                }}
-                className=" md:border-b border-rule/50"
-              >
-                <RowSkeleton index={i} />
-              </div>
-            ))
+                <div
+                  key={i}
+                  style={{
+                    height:
+                      window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
+                  }}
+                  className=" md:border-b border-rule/50"
+                >
+                  <RowSkeleton index={i} />
+                </div>
+              ))
             : null}
           {!error &&
             virtualItems.map((vItem) => {
@@ -140,11 +145,7 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
                 <VirtualRow
                   key={vItem.key}
                   vItem={vItem}
-                  className={
-                    vItem.index % 2 === 1
-                      ? "md:bg-ink/[0.04]"
-                      : ""
-                  }
+                  className={vItem.index % 2 === 1 ? "md:bg-ink/[0.04]" : ""}
                 >
                   <TripRow trip={trip} />
                   <TripCard trip={trip} />

@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
 import { formatInteger } from "../lib/format";
-import type { Phase } from "../types";
+import type { ErrorCode, Phase } from "../types";
+import { useI18n } from "../i18n/context";
 
-const phaseLabels: Record<Phase, string> = {
-  engine: "Starting database engine...",
-  query: "Loading 3.7M trips...",
-  ready: "System ready",
-};
-
-const METER = "mb-3 rounded-md bg-meter px-5 py-4 text-cab";
+const METER =
+  "mb-3 rounded-md border border-meter-edge bg-meter px-5 py-4 text-cab";
 
 export function StatusBar({
   totalCount,
@@ -24,11 +20,12 @@ export function StatusBar({
   firstIndex: number;
   lastIndex: number;
   tiempoTotal: number | null;
-  error: string | null;
+  error: ErrorCode | null;
   loading: boolean;
   tripsArrLength: number;
   phase: Phase;
 }) {
+  const { t } = useI18n();
   const [seconds, setSeconds] = useState(0);
 
   useEffect(() => {
@@ -45,14 +42,16 @@ export function StatusBar({
   if (error)
     return (
       <div className={METER}>
-        <p className="font-meter text-lg text-[#ffb4ab]">{error}</p>
+        <p className="font-meter text-lg text-[#ffb4ab]">
+          {error === "engine" ? t.status.errorEngine : t.status.errorParquet}
+        </p>
       </div>
     );
   if (loading && tripsArrLength === 0)
     return (
       <div className={METER}>
         <p className="font-meter text-lg">
-          {phaseLabels[phase]} {seconds}s
+          {t.status[phase]} {seconds}s
         </p>
       </div>
     );
@@ -60,10 +59,8 @@ export function StatusBar({
   if (totalCount === 0)
     return (
       <div className={METER}>
-        <p className="font-meter text-lg">No trips match these filters</p>
-        <p className="mt-1 text-sm text-white/70">
-          Lower the minimum fare or widen the distance to see trips again.
-        </p>
+        <p className="font-meter text-lg">{t.status.noMatch}</p>
+        <p className="mt-1 text-sm text-white/70">{t.status.noMatchHint}</p>
       </div>
     );
 
@@ -75,18 +72,21 @@ export function StatusBar({
         <p className="font-meter text-4xl font-bold leading-none">
           {formatInteger(totalCount)}
         </p>
-        <p className="mt-2 text-sm text-white/70">trips match these filters</p>
+        <p className="mt-2 text-sm text-white/70">{t.status.tripsMatch}</p>
       </div>
       <dl className="flex gap-8 text-sm">
         <div className="hidden md:block">
-          <dt className="text-white/70">Showing rows</dt>
+          <dt className="text-white/70">{t.status.showingRows}</dt>
           <dd className="font-meter text-lg font-medium">
-            {formatInteger(firstIndex + 1)} to {formatInteger(lastIndex + 1)}
+            {t.status.rowsRange(
+              formatInteger(firstIndex + 1),
+              formatInteger(lastIndex + 1),
+            )}
           </dd>
         </div>
         {tiempoTotal !== null && (
           <div>
-            <dt className="text-white/70">Query time</dt>
+            <dt className="text-white/70">{t.status.queryTime}</dt>
             <dd className="font-meter text-lg font-medium">
               {formatInteger(tiempoTotal)} ms
             </dd>

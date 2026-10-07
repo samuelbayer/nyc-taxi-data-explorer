@@ -1,37 +1,60 @@
-const money = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-});
+import { LOCALES, MESSAGES, type Lang } from "../i18n/messages";
 
-const miles = new Intl.NumberFormat("en-US", {
-  style: "unit",
-  unit: "mile",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
+function build(lang: Lang) {
+  const locale = LOCALES[lang];
+  return {
+    money: new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: "USD",
+      currencyDisplay: "narrowSymbol",
+    }),
+    miles: new Intl.NumberFormat(locale, {
+      style: "unit",
+      unit: "mile",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }),
+    integer: new Intl.NumberFormat(locale),
+    // Numeric dates keep rows short where month names are long ("1 de jan. de 2026").
+    dateTime: new Intl.DateTimeFormat(
+      locale,
+      lang === "en"
+        ? { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }
+        : {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            timeZone: "UTC",
+          },
+    ),
+  };
+}
 
-const integer = new Intl.NumberFormat("en-US");
+let currentLang: Lang = "en";
+let formats = build(currentLang);
 
-const dateTime = new Intl.DateTimeFormat("en-US", {
-  dateStyle: "medium",
-  timeStyle: "short",
-  timeZone: "UTC",
-});
+/** Switches the language used by every formatter below. */
+export function setFormatLang(lang: Lang) {
+  currentLang = lang;
+  formats = build(lang);
+}
 
 export function formatDistance(hundredthsOfMile: number): string {
-  return miles.format(hundredthsOfMile / 100);
+  return formats.miles.format(hundredthsOfMile / 100);
 }
 
 export function formatMoney(cents: number): string {
-  return money.format(cents / 100);
+  return formats.money.format(cents / 100);
 }
 
 export function formatInteger(number: number): string {
-  return integer.format(number);
+  return formats.integer.format(number);
 }
 
 export function formatDateTime(time: number): string {
-  return dateTime.format(time);
+  return formats.dateTime.format(time);
 }
 
 export function formatDropOffDate(pickup: number, duration: number): string {
@@ -45,14 +68,9 @@ export function formatDuration(duration: number): string {
 }
 
 export function formatTypePayment(type: number | null): string {
-  if (type === 0) return "Flex Fare trip";
-  if (type === 1) return "Credit card";
-  if (type === 2) return "Cash";
-  if (type === 3) return "No charge";
-  if (type === 4) return "Dispute";
-  if (type === 5) return "Unknown";
-  if (type === 6) return "Voided trip";
-  return "N/A";
+  const messages = MESSAGES[currentLang];
+  if (type === null) return messages.paymentUnknown;
+  return messages.payment[type] ?? messages.paymentUnknown;
 }
 
 export function formatPassengerNumber(passengers: number): string {

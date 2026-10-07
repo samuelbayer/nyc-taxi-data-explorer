@@ -5,7 +5,7 @@ export function TripRow({ trip }: { trip: TaxiTrip }) {
   return (
     <div
       style={TRIP_GRID_STYLE}
-      className="hidden w-full items-center p-3 md:py-2 md:px-4 md:grid gap-6"
+      className="hidden w-full items-center p-3 md:py-2 md:px-4 md:grid gap-4"
     >
       {TRIP_COLUMNS.map((col) => (
         <p className={cellClass(col)} key={col.key}>
