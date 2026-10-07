@@ -15,12 +15,12 @@ export function FiltersPanel({
 }) {
   const { t } = useI18n();
   return (
-    <div className="flex flex-col gap-6 rounded-md border border-rule bg-paper p-4 text-left">
+    <div className="flex flex-col gap-6 rounded-lg border border-rule bg-paper p-4 text-left">
       <div className="flex items-center gap-2">
         <input
           id="hide-negative-amounts"
           type="checkbox"
-          className="size-4 accent-ink"
+          className="size-4 accent-ink pointer-coarse:size-6"
           checked={filters.hideNegativeFare}
           onChange={(e) =>
             setFilters((prev) => ({
@@ -30,7 +30,7 @@ export function FiltersPanel({
           }
         ></input>
         <label
-          className="text-sm font-semibold"
+          className="flex-1 py-2 text-sm font-semibold pointer-coarse:py-3"
           htmlFor="hide-negative-amounts"
         >
           {t.filters.hideNegative}
@@ -49,7 +49,7 @@ export function FiltersPanel({
           max="1000"
           step="1"
           value={filters.fareAmount}
-          className="w-full accent-ink"
+          className="h-6 w-full cursor-pointer accent-ink pointer-coarse:h-11"
           onChange={(e) =>
             setFilters((prev) => ({
               ...prev,
@@ -72,7 +72,7 @@ export function FiltersPanel({
               paymentType: Number(e.target.value),
             }))
           }
-          className="rounded-md border border-rule bg-surface px-2 py-2 text-ink"
+          className="min-h-9 rounded-md border border-rule bg-surface px-2 py-2 text-ink pointer-coarse:min-h-11"
         >
           <option value={ALL_PAYMENT_TYPES}>{t.filters.noFilter}</option>
           {t.payment.map((label, type) => (
@@ -99,7 +99,7 @@ export function FiltersPanel({
           max="9"
           step="1"
           value={filters.passengerNumber}
-          className="w-full accent-ink"
+          className="h-6 w-full cursor-pointer accent-ink pointer-coarse:h-11"
           onChange={(e) =>
             setFilters((prev) => ({
               ...prev,

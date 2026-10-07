@@ -12,7 +12,7 @@ import { ThemeProvider } from "./theme.tsx";
 import { useTheme } from "./themeContext.ts";
 
 const CONTROL =
-  "rounded-md border border-rule bg-surface px-3 py-1.5 text-sm text-ink";
+  "min-h-9 rounded-md border border-rule bg-surface px-3 py-1.5 text-sm text-ink pointer-coarse:min-h-11 pointer-coarse:px-4";
 
 function HeaderControls() {
   const { lang, setLang, t } = useI18n();
@@ -46,7 +46,9 @@ function Shell() {
   const { t } = useI18n();
   const { theme } = useTheme();
   const dark = theme === "dark";
-  const ink = dark ? "#e8ecea" : "#181c20";
+  const ink = dark ? "#e4efec" : "#181c20";
+  const coarse = window.matchMedia("(pointer: coarse)").matches;
+  const [meterSlot, setMeterSlot] = useState<HTMLElement | null>(null);
   const [filters, setFilters] = useState<Filters>({
     fareAmount: 0,
     milesDistance: [0, MAX_MILES_DISTANCE],
@@ -69,29 +71,37 @@ function Shell() {
             trackHoverBg: ink,
             handleColor: ink,
             handleActiveColor: ink,
-            railBg: dark ? "#2c353a" : "#cbd2d0",
-            railHoverBg: dark ? "#3a454b" : "#b7c0be",
+            railBg: dark ? "#27413f" : "#cbd2d0",
+            railHoverBg: dark ? "#35544f" : "#b7c0be",
+            handleSize: coarse ? 22 : 10,
+            handleSizeHover: coarse ? 24 : 12,
           },
         },
         algorithm: dark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
       }}
     >
       <div className="min-h-screen px-4 py-6 md:px-6">
-        <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight">
-              NYC Taxi Data Explorer
-            </h1>
-            <p className="mt-1 text-muted">{t.subtitle}</p>
+        <header className="mb-6">
+          <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-extrabold tracking-tight">
+                NYC Taxi Data Explorer
+              </h1>
+              <p className="mt-1 text-muted">{t.subtitle}</p>
+            </div>
+            <HeaderControls />
           </div>
-          <HeaderControls />
+          <div ref={setMeterSlot} />
         </header>
         <div className="flex flex-col gap-6 md:flex-row">
           <aside className="w-full shrink-0 md:w-72">
             <FiltersPanel filters={filters} setFilters={setFilters} />
           </aside>
           <main className="min-w-0 flex-1">
-            <TripsTable filtersDebounced={filtersDebounced} />
+            <TripsTable
+              filtersDebounced={filtersDebounced}
+              statusSlot={meterSlot}
+            />
           </main>
         </div>
       </div>

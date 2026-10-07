@@ -46,6 +46,11 @@ Mistakes I made along the way and how I fixed them:
 - **Accessibility:** Lighthouse accessibility: 100. The virtual table still isn't exposed as a table to screen readers.
 - **Outliers in the data:** There are some distances up to 269,097 miles. I left them like that to show the original dataset.  
 
+## Languages and Theme
+
+- **Language:** picked from the browser's preferences (English, Spanish, French, German, Portuguese), with a selector in the header that remembers your choice. Numbers, currency and dates follow it. To add one, add an entry to `src/i18n/messages.ts`.
+- **Theme:** follows the system light/dark setting until you switch it with the header button. It is applied before first paint so the page never flashes the wrong theme.
+
 ## Tech Stack
 
 React 19 · TypeScript · Vite · Tailwind CSS v4 · TanStack Virtual · Web Worker + Comlink · DuckDB-WASM · Vitest

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import useParquetQuery from "../hooks/useParquetQuery.tsx";
 import { RowSkeleton } from "./RowSkeleton.tsx";
@@ -17,9 +18,16 @@ const BLOQUE = 500;
 // Below it the 8-column grid no longer fits next to the filters panel.
 export const MOBILE_BREAKPOINT = 1280;
 
-type Props = { filtersDebounced: Filters };
+type Props = {
+  filtersDebounced: Filters;
+  /** Element in the page header where the meter readout is rendered. */
+  statusSlot: HTMLElement | null;
+};
 
-export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
+export const TripsTable: React.FC<Props> = ({
+  filtersDebounced,
+  statusSlot,
+}) => {
   const { t } = useI18n();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [prevFilters, setPrevFilters] = useState(filtersDebounced);
@@ -89,19 +97,23 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
 
   return (
     <>
-      <StatusBar
-        totalCount={totalCount}
-        firstIndex={firstIndex}
-        lastIndex={lastIndex}
-        tiempoTotal={tiempoTotal}
-        error={error}
-        loading={loading}
-        tripsArrLength={trips.tripsArr.length}
-        phase={phase}
-      />
+      {statusSlot &&
+        createPortal(
+          <StatusBar
+            totalCount={totalCount}
+            firstIndex={firstIndex}
+            lastIndex={lastIndex}
+            tiempoTotal={tiempoTotal}
+            error={error}
+            loading={loading}
+            tripsArrLength={trips.tripsArr.length}
+            phase={phase}
+          />,
+          statusSlot,
+        )}
       <div
         ref={scrollRef}
-        className="mx-auto h-[85dvh] w-full overflow-auto rounded-md border border-rule bg-paper [scrollbar-gutter:stable]"
+        className="mx-auto h-[85dvh] w-full overflow-auto rounded-lg border border-rule bg-paper [scrollbar-gutter:stable]"
       >
         <div
           style={TRIP_GRID_STYLE}

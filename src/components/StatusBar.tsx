@@ -4,7 +4,7 @@ import type { ErrorCode, Phase } from "../types";
 import { useI18n } from "../i18n/context";
 
 const METER =
-  "mb-3 rounded-md border border-meter-edge bg-meter px-5 py-4 text-cab";
+  "min-h-[7rem] rounded-2xl border border-meter-edge bg-meter px-5 py-4 text-meter-fg";
 
 export function StatusBar({
   totalCount,
@@ -42,7 +42,7 @@ export function StatusBar({
   if (error)
     return (
       <div className={METER}>
-        <p className="font-meter text-lg text-[#ffb4ab]">
+        <p className="font-meter text-lg text-meter-alert">
           {error === "engine" ? t.status.errorEngine : t.status.errorParquet}
         </p>
       </div>
@@ -60,7 +60,7 @@ export function StatusBar({
     return (
       <div className={METER}>
         <p className="font-meter text-lg">{t.status.noMatch}</p>
-        <p className="mt-1 text-sm text-white/70">{t.status.noMatchHint}</p>
+        <p className="mt-1 text-sm text-meter-dim">{t.status.noMatchHint}</p>
       </div>
     );
 
@@ -72,11 +72,11 @@ export function StatusBar({
         <p className="font-meter text-4xl font-bold leading-none">
           {formatInteger(totalCount)}
         </p>
-        <p className="mt-2 text-sm text-white/70">{t.status.tripsMatch}</p>
+        <p className="mt-2 text-sm text-meter-dim">{t.status.tripsMatch}</p>
       </div>
       <dl className="flex gap-8 text-sm">
         <div className="hidden md:block">
-          <dt className="text-white/70">{t.status.showingRows}</dt>
+          <dt className="text-meter-dim">{t.status.showingRows}</dt>
           <dd className="font-meter text-lg font-medium">
             {t.status.rowsRange(
               formatInteger(firstIndex + 1),
@@ -86,7 +86,7 @@ export function StatusBar({
         </div>
         {tiempoTotal !== null && (
           <div>
-            <dt className="text-white/70">{t.status.queryTime}</dt>
+            <dt className="text-meter-dim">{t.status.queryTime}</dt>
             <dd className="font-meter text-lg font-medium">
               {formatInteger(tiempoTotal)} ms
             </dd>

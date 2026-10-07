@@ -12,20 +12,26 @@
   --color-rule: #cbd2d0;
   --color-meter: #14181b;
   --color-meter-edge: #14181b;
-  --color-cab: #f5b800;
+  --color-meter-fg: #f5b800;
+  --color-meter-dim: #b9bfc3;
+  --color-meter-alert: #ffb4ab;
   --color-loss: #a8281f;
   --color-caution: #8a5700;
 }
 
 :root[data-theme="dark"] {
-  --color-street: #0e1113;
-  --color-paper: #171b1e;
-  --color-surface: #1e2428;
-  --color-ink: #e8ecea;
-  --color-muted: #9ba6ae;
-  --color-rule: #2c353a;
-  --color-meter: #050607;
-  --color-meter-edge: #2c353a;
+  /* Night street: teal-tinted dark, with the meter turned into a cab-yellow body. */
+  --color-street: #0b1618;
+  --color-paper: #112124;
+  --color-surface: #17292d;
+  --color-ink: #e4efec;
+  --color-muted: #9bb3b1;
+  --color-rule: #27413f;
+  --color-meter: #f5b800;
+  --color-meter-edge: #f5b800;
+  --color-meter-fg: #14181b;
+  --color-meter-dim: #4a3b00;
+  --color-meter-alert: #7a1a12;
   --color-loss: #ff8f86;
   --color-caution: #e8b04a;
 }
@@ -58,5 +64,14 @@
     .animate-pulse {
       animation: none;
     }
+  }
+}
+
+/* antd sliders are ~12px tall; widen the touch area on touch screens. */
+@media (pointer: coarse) {
+  .ant-slider::before {
+    content: "";
+    position: absolute;
+    inset: -16px -6px;
   }
 }
