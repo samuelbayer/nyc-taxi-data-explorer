@@ -12,7 +12,7 @@ export function StatusBar({
   totalCount,
   firstIndex,
   lastIndex,
-  tiempoTotal,
+  queryMs,
   error,
   loading,
   tripsArrLength,
@@ -21,7 +21,7 @@ export function StatusBar({
   totalCount: number;
   firstIndex: number;
   lastIndex: number;
-  tiempoTotal: number | null;
+  queryMs: number | null;
   error: string | null;
   loading: boolean;
   tripsArrLength: number;
@@ -54,7 +54,7 @@ export function StatusBar({
     <h2 className="hidden md:block">
       Showing rows {formatInteger(firstIndex + 1)} to{" "}
       {formatInteger(lastIndex + 1)} of <i> {formatInteger(totalCount)}</i> in{" "}
-      {formatInteger(tiempoTotal as number)}ms
+      {formatInteger(queryMs as number)}ms
     </h2>
   );
 }

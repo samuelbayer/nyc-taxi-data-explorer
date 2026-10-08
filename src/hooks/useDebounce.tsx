@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 
-export default function useDebounce<T>(valor: T, ms: number): T {
-  const [diferido, setDiferido] = useState<T>(valor);
+export default function useDebounce<T>(value: T, ms: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
   useEffect(() => {
-    const id = setTimeout(() => setDiferido(valor), ms);
+    const id = setTimeout(() => setDebouncedValue(value), ms);
     return () => clearTimeout(id);
-  }, [valor, ms]);
-  return diferido;
+  }, [value, ms]);
+  return debouncedValue;
 }

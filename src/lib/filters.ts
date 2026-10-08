@@ -3,7 +3,7 @@ import type { Filters } from "../types";
 export const ALL_PAYMENT_TYPES = 7;
 export const MAX_MILES_DISTANCE = 500;
 
-export function construirWhere(filters: Filters): string {
+export function buildWhere(filters: Filters): string {
   const [min, max] = filters.milesDistance;
   const fareAmount =
     filters.fareAmount > 0 ? `fare_cents >= ${filters.fareAmount * 100}` : "";

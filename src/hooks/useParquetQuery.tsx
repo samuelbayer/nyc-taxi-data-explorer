@@ -1,7 +1,7 @@
 import * as comlink from "comlink";
 import type { DuckDBService } from "../workers/db.worker.ts";
 import { useEffect, useState, useMemo } from "react";
-import { construirWhere } from "../lib/filters.ts";
+import { buildWhere } from "../lib/filters.ts";
 import { type TaxiTrip, type Filters, type Phase } from "../types";
 
 const worker = new Worker(new URL("../workers/db.worker.ts", import.meta.url), {
@@ -18,7 +18,7 @@ export default function useParquetQuery(filters: Filters): {
   totalCount: number;
   indexRange: number[];
   setIndexRange: React.Dispatch<React.SetStateAction<number[]>>;
-  tiempoTotal: number | null;
+  queryMs: number | null;
   phase: Phase;
 } {
   const [indexRange, setIndexRange] = useState([0, 499]);
@@ -28,21 +28,21 @@ export default function useParquetQuery(filters: Filters): {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState<number>(0);
-  const [tiempoTotal, setTiempoTotal] = useState<number | null>(null);
+  const [queryMs, setQueryMs] = useState<number | null>(null);
   const [phase, setPhase] = useState<Phase>("engine");
 
-  const where = useMemo(() => construirWhere(filters), [filters]);
+  const where = useMemo(() => buildWhere(filters), [filters]);
 
   useEffect(() => {
-    let cancelado = false;
+    let cancelled = false;
     setError(null);
     async function getParquetTableCount() {
       try {
         const count = await dbService.getParquetTableCount(parquetUrl, where);
-        if (cancelado) return;
+        if (cancelled) return;
         setTotalCount(Number(count[0].total));
       } catch (err) {
-        if (cancelado) return;
+        if (cancelled) return;
         console.error("Error reading ParquetTableCount:", err);
       }
     }
@@ -50,62 +50,62 @@ export default function useParquetQuery(filters: Filters): {
     getParquetTableCount();
 
     return () => {
-      cancelado = true;
+      cancelled = true;
     };
   }, [where]);
 
   useEffect(() => {
-    let cancelado = false;
+    let cancelled = false;
     (async () => {
       try {
         await dbService.init();
-        if (cancelado) return;
+        if (cancelled) return;
         setPhase("query");
       } catch (err) {
-        if (cancelado) return;
+        if (cancelled) return;
         console.error("Error starting DuckDB:", err);
         setError("Could not start the database engine");
       }
     })();
     return () => {
-      cancelado = true;
+      cancelled = true;
     };
   }, []);
 
   useEffect(() => {
-    let cancelado = false;
+    let cancelled = false;
 
-    async function cargarDatos() {
+    async function loadRows() {
       try {
         setLoading(true);
         setError(null);
 
-        const inicio = performance.now();
-        const resultado = (await dbService.queryParquet(
+        const start = performance.now();
+        const rows = (await dbService.queryParquet(
           parquetUrl,
           `SELECT pickup, duration_s, distance_cent, fare_cents, tip_cents, passengers, payment_type FROM 'trips3.parquet' ${where} LIMIT ${indexRange[1] - indexRange[0] + 1} OFFSET ${indexRange[0]}`,
         )) as TaxiTrip[];
 
-        const fin = performance.now();
-        const ms = (fin - inicio).toFixed(2);
+        const end = performance.now();
+        const ms = (end - start).toFixed(2);
 
-        if (cancelado) return;
-        setTiempoTotal(Number(ms));
-        setTrips({ tripsArr: resultado, range: indexRange });
+        if (cancelled) return;
+        setQueryMs(Number(ms));
+        setTrips({ tripsArr: rows, range: indexRange });
         setPhase("ready");
       } catch (err) {
-        if (cancelado) return;
+        if (cancelled) return;
         console.error("Error reading Parquet:", err);
         setError("The Parquet file could not be loaded");
       } finally {
-        if (!cancelado) setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
-    cargarDatos();
+    loadRows();
 
     return () => {
-      cancelado = true;
+      cancelled = true;
     };
   }, [indexRange, where]);
 
@@ -116,7 +116,7 @@ export default function useParquetQuery(filters: Filters): {
     totalCount,
     indexRange,
     setIndexRange,
-    tiempoTotal,
+    queryMs: queryMs,
     phase,
   };
 }

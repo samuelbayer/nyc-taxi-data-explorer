@@ -11,7 +11,7 @@ import { CARD_HEIGHT, TripCard } from "./TripCard.tsx";
 import { TripRow } from "./TripRow.tsx";
 import { VirtualRow } from "./VirtualRow.tsx";
 
-const BLOQUE = 500;
+const BLOCK_SIZE = 500;
 // Must match Tailwind's `xl` breakpoint (80rem = 1280px), used by the row/card classes.
 // Below it the 8-column grid no longer fits next to the filters panel.
 export const MOBILE_BREAKPOINT = 1280;
@@ -27,13 +27,13 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
     trips,
     totalCount,
     setIndexRange,
-    tiempoTotal,
+    queryMs,
     phase,
   } = useParquetQuery(filtersDebounced);
 
   if (filtersDebounced !== prevFilters) {
     setPrevFilters(filtersDebounced);
-    setIndexRange([0, BLOQUE - 1]);
+    setIndexRange([0, BLOCK_SIZE - 1]);
   }
 
   useEffect(() => {
@@ -49,12 +49,12 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
   });
 
   useEffect(() => {
-    let isItMobile = window.innerWidth < MOBILE_BREAKPOINT;
+    let isMobile = window.innerWidth < MOBILE_BREAKPOINT;
     const handleResize = () => {
-      if (window.innerWidth < MOBILE_BREAKPOINT === isItMobile) {
+      if (window.innerWidth < MOBILE_BREAKPOINT === isMobile) {
         return;
       }
-      isItMobile = window.innerWidth < MOBILE_BREAKPOINT;
+      isMobile = window.innerWidth < MOBILE_BREAKPOINT;
       return virtualizer.measure();
     };
     window.addEventListener("resize", handleResize);
@@ -69,8 +69,8 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
   useEffect(() => {
     if (virtualItems.length === 0) return;
 
-    const start = Math.floor(firstIndex / BLOQUE) * BLOQUE;
-    const end = Math.ceil((lastIndex + 1) / BLOQUE) * BLOQUE - 1;
+    const start = Math.floor(firstIndex / BLOCK_SIZE) * BLOCK_SIZE;
+    const end = Math.ceil((lastIndex + 1) / BLOCK_SIZE) * BLOCK_SIZE - 1;
 
     const handler = setTimeout(() => {
       setIndexRange((prev) => {
@@ -91,7 +91,7 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
         totalCount={totalCount}
         firstIndex={firstIndex}
         lastIndex={lastIndex}
-        tiempoTotal={tiempoTotal}
+        queryMs={queryMs}
         error={error}
         loading={loading}
         tripsArrLength={trips.tripsArr.length}
@@ -117,17 +117,17 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
         >
           {loading && totalCount === 0
             ? Array.from({ length: 23 }).map((_, i) => (
-                <div
-                  key={i}
-                  style={{
-                    height:
-                      window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
-                  }}
-                  className="xl:border-b border-slate-900"
-                >
-                  <RowSkeleton index={i} />
-                </div>
-              ))
+              <div
+                key={i}
+                style={{
+                  height:
+                    window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
+                }}
+                className="xl:border-b border-slate-900"
+              >
+                <RowSkeleton index={i} />
+              </div>
+            ))
             : null}
           {!error &&
             virtualItems.map((vItem) => {

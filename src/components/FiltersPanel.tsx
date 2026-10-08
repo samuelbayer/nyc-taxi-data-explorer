@@ -107,8 +107,8 @@ export function FiltersPanel({
           range
           id="miles-range"
           value={filters.milesDistance}
-          onChange={(valor) =>
-            setFilters((prev) => ({ ...prev, milesDistance: valor }))
+          onChange={(value) =>
+            setFilters((prev) => ({ ...prev, milesDistance: value }))
           }
           max={MAX_MILES_DISTANCE}
           ariaLabelForHandle={["Minimum distance", "Maximum distance"]}

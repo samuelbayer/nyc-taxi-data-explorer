@@ -55,10 +55,10 @@ export const duckDBService = {
     const BASE = import.meta.env.VITE_PARQUET_BASE || location.origin;
     const fileName = relativePath.split("/").pop() ?? "trips3.parquet";
     const fullUrl = `${BASE}/${fileName}`;
-    let cargando = loadingFiles.get(fileName);
+    let registering = loadingFiles.get(fileName);
 
-    if (!cargando) {
-      cargando = (async () => {
+    if (!registering) {
+      registering = (async () => {
         await activeDb.registerFileURL(
           fileName,
           fullUrl,
@@ -67,11 +67,11 @@ export const duckDBService = {
         );
       })();
 
-      loadingFiles.set(fileName, cargando);
-      cargando.catch(() => loadingFiles.delete(fileName));
+      loadingFiles.set(fileName, registering);
+      registering.catch(() => loadingFiles.delete(fileName));
     }
 
-    await cargando;
+    await registering;
 
     const conn = await activeDb.connect();
 
