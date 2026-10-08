@@ -1,7 +1,7 @@
 import { TripsTable } from "./components/TripsTable";
 import { useState } from "react";
 import { ALL_PAYMENT_TYPES, MAX_MILES_DISTANCE } from "./lib/filters.ts";
-import useDebounce from "./hooks/useDebounce.tsx";
+import useDebounce from "./hooks/useDebounce.ts";
 import { FiltersPanel } from "./components/FiltersPanel.tsx";
 import type { Filters } from "./types.ts";
 
