@@ -30,7 +30,13 @@ export const duckDBService = {
 
       const duckDb = new duckdb.AsyncDuckDB(logger, worker);
       await duckDb.instantiate(bundle.mainModule, bundle.pthreadWorker);
-      await duckDb.open({ filesystem: { forceFullHTTPReads: false, reliableHeadRequests: true, allowFullHTTPReads: true } })
+      await duckDb.open({
+        filesystem: {
+          forceFullHTTPReads: false,
+          reliableHeadRequests: true,
+          allowFullHTTPReads: true,
+        },
+      });
       URL.revokeObjectURL(workerUrl);
 
       db = duckDb;
@@ -100,43 +106,44 @@ export const duckDBService = {
   },
 
   async loadFullFile(
-  relativePath: string,
-  onProgress: (loaded: number, total: number) => void,
-): Promise<void> {
-  if (!db) await this.init();
-  const activeDb = db!;
+    relativePath: string,
+    onProgress: (loaded: number, total: number) => void,
+  ): Promise<void> {
+    if (!db) await this.init();
+    const activeDb = db!;
 
-  const response = await fetch(relativePath);
-  const total = Number(response.headers.get("Content-Length"));
-  const reader = response.body!.getReader();
+    const response = await fetch(relativePath);
+    const total = Number(response.headers.get("Content-Length"));
+    const reader = response.body!.getReader();
 
-  const chunks: Uint8Array[] = [];
-  let loaded = 0;
+    const chunks: Uint8Array[] = [];
+    let loaded = 0;
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-    loaded += value.length
-    onProgress(loaded, total)
-  }
-  let offset = 0
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      loaded += value.length;
+      onProgress(loaded, total);
+    }
+    let offset = 0;
 
-  const bytes = new Uint8Array(loaded);
-  for (const chunk of chunks) {
-    bytes.set(chunk, offset)
-    offset += chunk.length
-  }
-  await activeDb.registerFileBuffer("trips_full.parquet", bytes);
+    const bytes = new Uint8Array(loaded);
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.length;
+    }
+    await activeDb.registerFileBuffer("trips_full.parquet", bytes);
 
-  const conn = await activeDb.connect();
-  try {
-    await conn.query(`CREATE OR REPLACE VIEW trips AS SELECT * FROM 'trips_full.parquet'`);
-  } finally {
-    await conn.close();
-  }
-},
-
+    const conn = await activeDb.connect();
+    try {
+      await conn.query(
+        `CREATE OR REPLACE VIEW trips AS SELECT * FROM 'trips_full.parquet'`,
+      );
+    } finally {
+      await conn.close();
+    }
+  },
 };
 
 export type DuckDBService = typeof duckDBService;
