@@ -1,6 +1,6 @@
 import * as comlink from "comlink";
 import type { DuckDBService } from "../workers/db.worker.ts";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { buildWhere } from "../lib/filters.ts";
 import { type TaxiTrip, type Filters, type Phase } from "../types";
 
@@ -30,6 +30,7 @@ export default function useParquetQuery(filters: Filters): {
   const [totalCount, setTotalCount] = useState<number>(0);
   const [queryMs, setQueryMs] = useState<number | null>(null);
   const [phase, setPhase] = useState<Phase>("engine");
+  const alreadyDownloadedRef = useRef(false)
 
   const where = useMemo(() => buildWhere(filters), [filters]);
 
@@ -71,6 +72,12 @@ export default function useParquetQuery(filters: Filters): {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (phase !== 'ready' || alreadyDownloadedRef.current) return
+    dbService.loadFullFile(parquetUrl, comlink.proxy((loaded, total) => console.log(loaded)))
+    alreadyDownloadedRef.current = true
+  }, [phase])
 
   useEffect(() => {
     let cancelled = false;
