@@ -30,6 +30,7 @@ export const duckDBService = {
 
       const duckDb = new duckdb.AsyncDuckDB(logger, worker);
       await duckDb.instantiate(bundle.mainModule, bundle.pthreadWorker);
+      await duckDb.open({ filesystem: { forceFullHTTPReads: false, reliableHeadRequests: true, allowFullHTTPReads: true } })
       URL.revokeObjectURL(workerUrl);
 
       db = duckDb;
