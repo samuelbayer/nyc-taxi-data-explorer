@@ -44,7 +44,7 @@ export const duckDBService = {
 
   async queryParquet<T = QueryResultRow>(
     relativePath: string,
-    sqlQuery?: string,
+    sqlQuery: string,
   ): Promise<T[]> {
     if (!db) await this.init();
 
@@ -84,10 +84,7 @@ export const duckDBService = {
     const conn = await activeDb.connect();
 
     try {
-      const query = sqlQuery
-        ? sqlQuery
-        : `SELECT * FROM '${fullUrl}' LIMIT 100`;
-      const result = await conn.query(query);
+      const result = await conn.query(sqlQuery);
       return result.toArray().map((row) => row.toJSON() as T);
     } finally {
       await conn.close();
@@ -95,10 +92,9 @@ export const duckDBService = {
   },
 
   async getParquetTableCount(relativePath: string, where: string) {
-    const fileName = relativePath.split("/").pop() ?? "trips3.parquet";
     return this.queryParquet(
       relativePath,
-      `SELECT COUNT(*) AS total FROM '${fileName}' ${where}`,
+      `SELECT COUNT(*) AS total FROM trips ${where}`,
     );
   },
 };

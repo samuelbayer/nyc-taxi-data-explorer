@@ -83,7 +83,7 @@ export default function useParquetQuery(filters: Filters): {
         const start = performance.now();
         const rows = (await dbService.queryParquet(
           parquetUrl,
-          `SELECT pickup, duration_s, distance_cent, fare_cents, tip_cents, passengers, payment_type FROM 'trips3.parquet' ${where} LIMIT ${indexRange[1] - indexRange[0] + 1} OFFSET ${indexRange[0]}`,
+          `SELECT pickup, duration_s, distance_cent, fare_cents, tip_cents, passengers, payment_type FROM trips ${where} LIMIT ${indexRange[1] - indexRange[0] + 1} OFFSET ${indexRange[0]}`,
         )) as TaxiTrip[];
 
         const end = performance.now();
