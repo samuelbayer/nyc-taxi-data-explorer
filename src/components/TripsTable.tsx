@@ -21,15 +21,8 @@ type Props = { filtersDebounced: Filters };
 export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [prevFilters, setPrevFilters] = useState(filtersDebounced);
-  const {
-    error,
-    loading,
-    trips,
-    totalCount,
-    setIndexRange,
-    queryMs,
-    phase,
-  } = useParquetQuery(filtersDebounced);
+  const { error, loading, trips, totalCount, setIndexRange, queryMs, phase } =
+    useParquetQuery(filtersDebounced);
 
   if (filtersDebounced !== prevFilters) {
     setPrevFilters(filtersDebounced);
@@ -117,17 +110,17 @@ export const TripsTable: React.FC<Props> = ({ filtersDebounced }) => {
         >
           {loading && totalCount === 0
             ? Array.from({ length: 23 }).map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  height:
-                    window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
-                }}
-                className="xl:border-b border-slate-900"
-              >
-                <RowSkeleton index={i} />
-              </div>
-            ))
+                <div
+                  key={i}
+                  style={{
+                    height:
+                      window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
+                  }}
+                  className="xl:border-b border-slate-900"
+                >
+                  <RowSkeleton index={i} />
+                </div>
+              ))
             : null}
           {!error &&
             virtualItems.map((vItem) => {

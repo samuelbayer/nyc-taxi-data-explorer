@@ -66,12 +66,13 @@ export const duckDBService = {
           true,
         );
         const conn = await activeDb.connect();
-        try{
-          await conn.query(`CREATE OR REPLACE VIEW trips AS SELECT * FROM '${fileName}'`)
+        try {
+          await conn.query(
+            `CREATE OR REPLACE VIEW trips AS SELECT * FROM '${fileName}'`,
+          );
         } finally {
-         await conn.close()
+          await conn.close();
         }
-        
       })();
 
       loadingFiles.set(fileName, registering);

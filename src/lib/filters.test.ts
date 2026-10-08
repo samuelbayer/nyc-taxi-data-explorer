@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  ALL_PAYMENT_TYPES,
-  buildWhere,
-  MAX_MILES_DISTANCE,
-} from "./filters";
+import { ALL_PAYMENT_TYPES, buildWhere, MAX_MILES_DISTANCE } from "./filters";
 import type { Filters } from "../types";
 
 const testFilter: Filters = {
@@ -51,7 +47,7 @@ describe("buildWhere", () => {
     expect(result).toBe("WHERE distance_cent <= 12000");
   });
   it("returns a payment type condition", () => {
-    const result   = buildWhere({ ...testFilter, paymentType: 1 });
+    const result = buildWhere({ ...testFilter, paymentType: 1 });
     expect(result).toBe("WHERE payment_type = 1");
   });
   it("returns a condition based on the number of passengers", () => {
