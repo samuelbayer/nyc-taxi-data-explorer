@@ -5,9 +5,13 @@ import { Slider } from "antd";
 export function FiltersPanel({
   filters,
   setFilters,
+  downloadProgress,
+  isFullFileReady
 }: {
   filters: Filters;
   setFilters: React.Dispatch<React.SetStateAction<Filters>>;
+  downloadProgress: number | null
+  isFullFileReady: boolean
 }) {
   return (
     <div className="flex flex-col gap-6 text-left">
@@ -114,6 +118,8 @@ export function FiltersPanel({
           ariaLabelForHandle={["Minimum distance", "Maximum distance"]}
         />
       </div>
+      <p>{downloadProgress}</p>
+      {isFullFileReady}
     </div>
   );
 }

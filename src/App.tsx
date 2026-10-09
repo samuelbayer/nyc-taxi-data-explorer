@@ -14,6 +14,8 @@ function App() {
     hideNegativeFare: false,
   });
   const filtersDebounced = useDebounce(filters, 300);
+  const [downloadProgress, setDownloadProgress] = useState<number | null>(null)
+  const [isFullFileReady, setIsFullFileReady] = useState(false)
 
   return (
     <>
@@ -21,10 +23,10 @@ function App() {
         <h1 className="text-4xl font-bold mb-8">NYC Taxi Data Explorer</h1>
         <div className="flex flex-col md:flex-row gap-6 ">
           <aside className="w-full shrink-0 md:w-72">
-            <FiltersPanel filters={filters} setFilters={setFilters} />
+            <FiltersPanel filters={filters} setFilters={setFilters} downloadProgress={downloadProgress} isFullFileReady={isFullFileReady} />
           </aside>
           <main className="flex-1 min-w-0">
-            <TripsTable filtersDebounced={filtersDebounced} />
+            <TripsTable filtersDebounced={filtersDebounced} setDownloadProgress={setDownloadProgress} setIsFullFileReady={setIsFullFileReady} />
           </main>
         </div>
       </div>
