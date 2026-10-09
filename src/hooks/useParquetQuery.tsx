@@ -11,6 +11,8 @@ const worker = new Worker(new URL("../workers/db.worker.ts", import.meta.url), {
 const dbService = comlink.wrap<DuckDBService>(worker);
 const parquetUrl = "/trips3.parquet";
 
+const PARQUET_SIZE = 25_877_062;
+
 export default function useParquetQuery(filters: Filters, setDownloadProgress: React.Dispatch<React.SetStateAction<number | null>>, setIsFullFileReady: React.Dispatch<React.SetStateAction<boolean>>): {
   trips: { tripsArr: TaxiTrip[]; range: number[] };
   loading: boolean;
@@ -75,7 +77,7 @@ export default function useParquetQuery(filters: Filters, setDownloadProgress: R
 
   useEffect(() => {
     if (phase !== 'ready' || alreadyDownloadedRef.current) return
-    dbService.loadFullFile(parquetUrl, comlink.proxy((loaded, total) => setDownloadProgress(Math.round((loaded / total))))).then(() => setIsFullFileReady(true))
+    dbService.loadFullFile(parquetUrl, comlink.proxy((loaded) => setDownloadProgress(Math.round((loaded / PARQUET_SIZE) * 100)))).then(() => setIsFullFileReady(true))
     alreadyDownloadedRef.current = true
   }, [phase, setDownloadProgress, setIsFullFileReady])
 
