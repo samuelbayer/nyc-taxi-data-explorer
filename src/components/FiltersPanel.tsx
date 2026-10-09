@@ -118,8 +118,7 @@ export function FiltersPanel({
           ariaLabelForHandle={["Minimum distance", "Maximum distance"]}
         />
       </div>
-      <p>{downloadProgress}</p>
-      {isFullFileReady}
+      {isFullFileReady ? <p>{downloadProgress}</p> : <p>{isFullFileReady}</p>}
     </div>
   );
 }
