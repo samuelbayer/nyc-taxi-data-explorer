@@ -75,7 +75,7 @@ export default function useParquetQuery(filters: Filters, setDownloadProgress: R
 
   useEffect(() => {
     if (phase !== 'ready' || alreadyDownloadedRef.current) return
-    dbService.loadFullFile(parquetUrl, comlink.proxy((loaded, total) => setDownloadProgress(Math.round(loaded)))).then(() => setIsFullFileReady(true))
+    dbService.loadFullFile(parquetUrl, comlink.proxy((loaded) => setDownloadProgress(Math.round(loaded)))).then(() => setIsFullFileReady(true))
     alreadyDownloadedRef.current = true
   }, [phase, setDownloadProgress, setIsFullFileReady])
 
