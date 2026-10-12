@@ -3,6 +3,7 @@ import * as duckdb from "@duckdb/duckdb-wasm";
 
 let db: duckdb.AsyncDuckDB | null = null;
 let initPromise: Promise<void> | null = null;
+let fullFilePromise: Promise<void> | null = null;
 
 const loadingFiles = new Map<string, Promise<void>>();
 
@@ -30,6 +31,13 @@ export const duckDBService = {
 
       const duckDb = new duckdb.AsyncDuckDB(logger, worker);
       await duckDb.instantiate(bundle.mainModule, bundle.pthreadWorker);
+      await duckDb.open({
+        filesystem: {
+          forceFullHTTPReads: false,
+          reliableHeadRequests: true,
+          allowFullHTTPReads: true,
+        },
+      });
       URL.revokeObjectURL(workerUrl);
 
       db = duckDb;
@@ -44,7 +52,7 @@ export const duckDBService = {
 
   async queryParquet<T = QueryResultRow>(
     relativePath: string,
-    sqlQuery?: string,
+    sqlQuery: string,
   ): Promise<T[]> {
     if (!db) await this.init();
 
@@ -65,6 +73,14 @@ export const duckDBService = {
           duckdb.DuckDBDataProtocol.HTTP,
           true,
         );
+        const conn = await activeDb.connect();
+        try {
+          await conn.query(
+            `CREATE OR REPLACE VIEW trips AS SELECT * FROM '${fileName}'`,
+          );
+        } finally {
+          await conn.close();
+        }
       })();
 
       loadingFiles.set(fileName, registering);
@@ -76,10 +92,7 @@ export const duckDBService = {
     const conn = await activeDb.connect();
 
     try {
-      const query = sqlQuery
-        ? sqlQuery
-        : `SELECT * FROM '${fullUrl}' LIMIT 100`;
-      const result = await conn.query(query);
+      const result = await conn.query(sqlQuery);
       return result.toArray().map((row) => row.toJSON() as T);
     } finally {
       await conn.close();
@@ -87,11 +100,56 @@ export const duckDBService = {
   },
 
   async getParquetTableCount(relativePath: string, where: string) {
-    const fileName = relativePath.split("/").pop() ?? "trips3.parquet";
     return this.queryParquet(
       relativePath,
-      `SELECT COUNT(*) AS total FROM '${fileName}' ${where}`,
+      `SELECT COUNT(*) AS total FROM trips ${where}`,
     );
+  },
+
+  async loadFullFile(
+    relativePath: string,
+    onProgress: (loaded: number) => void,
+  ): Promise<void> {
+    if (fullFilePromise) return fullFilePromise;
+
+    fullFilePromise = (async () => {
+      if (!db) await this.init();
+      const activeDb = db!;
+      // "?full" keeps this full (brotli-compressed) download in its own HTTP cache
+      // entry. Sharing the URL with DuckDB's range requests breaks repeat visits:
+      // the browser answers a Range request with the cached full file.
+      const response = await fetch(`${relativePath}?full`);
+      const reader = response.body!.getReader();
+
+      const chunks: Uint8Array[] = [];
+      let loaded = 0;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        loaded += value.length;
+        onProgress(loaded);
+      }
+      let offset = 0;
+
+      const bytes = new Uint8Array(loaded);
+      for (const chunk of chunks) {
+        bytes.set(chunk, offset);
+        offset += chunk.length;
+      }
+      await activeDb.registerFileBuffer("trips_full.parquet", bytes);
+
+      const conn = await activeDb.connect();
+      try {
+        await conn.query(
+          `CREATE OR REPLACE VIEW trips AS SELECT * FROM 'trips_full.parquet'`,
+        );
+      } finally {
+        await conn.close();
+      }
+    })();
+    return fullFilePromise;
   },
 };
 

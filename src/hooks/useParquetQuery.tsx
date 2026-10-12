@@ -1,6 +1,6 @@
 import * as comlink from "comlink";
 import type { DuckDBService } from "../workers/db.worker.ts";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { buildWhere } from "../lib/filters.ts";
 import { type TaxiTrip, type Filters, type Phase } from "../types";
 
@@ -11,7 +11,15 @@ const worker = new Worker(new URL("../workers/db.worker.ts", import.meta.url), {
 const dbService = comlink.wrap<DuckDBService>(worker);
 const parquetUrl = "/trips3.parquet";
 
-export default function useParquetQuery(filters: Filters): {
+// Vercel serves the Parquet with brotli, so there is no Content-Length.
+// Size of public/trips3.parquet; update it if the file is regenerated.
+const PARQUET_SIZE = 25_877_062;
+
+export default function useParquetQuery(
+  filters: Filters,
+  setDownloadProgress: React.Dispatch<React.SetStateAction<number | null>>,
+  setIsFullFileReady: React.Dispatch<React.SetStateAction<boolean>>,
+): {
   trips: { tripsArr: TaxiTrip[]; range: number[] };
   loading: boolean;
   error: string | null;
@@ -30,6 +38,7 @@ export default function useParquetQuery(filters: Filters): {
   const [totalCount, setTotalCount] = useState<number>(0);
   const [queryMs, setQueryMs] = useState<number | null>(null);
   const [phase, setPhase] = useState<Phase>("engine");
+  const alreadyDownloadedRef = useRef(false);
 
   const where = useMemo(() => buildWhere(filters), [filters]);
 
@@ -73,6 +82,23 @@ export default function useParquetQuery(filters: Filters): {
   }, []);
 
   useEffect(() => {
+    if (phase !== "ready" || alreadyDownloadedRef.current) return;
+    dbService
+      .loadFullFile(
+        parquetUrl,
+        comlink.proxy((loaded) =>
+          setDownloadProgress(Math.round((loaded / PARQUET_SIZE) * 100)),
+        ),
+      )
+      .then(() => setIsFullFileReady(true))
+      .catch((error) => {
+        console.error(error);
+        setIsFullFileReady(true);
+      });
+    alreadyDownloadedRef.current = true;
+  }, [phase, setDownloadProgress, setIsFullFileReady]);
+
+  useEffect(() => {
     let cancelled = false;
 
     async function loadRows() {
@@ -83,7 +109,7 @@ export default function useParquetQuery(filters: Filters): {
         const start = performance.now();
         const rows = (await dbService.queryParquet(
           parquetUrl,
-          `SELECT pickup, duration_s, distance_cent, fare_cents, tip_cents, passengers, payment_type FROM 'trips3.parquet' ${where} LIMIT ${indexRange[1] - indexRange[0] + 1} OFFSET ${indexRange[0]}`,
+          `SELECT pickup, duration_s, distance_cent, fare_cents, tip_cents, passengers, payment_type FROM trips ${where} LIMIT ${indexRange[1] - indexRange[0] + 1} OFFSET ${indexRange[0]}`,
         )) as TaxiTrip[];
 
         const end = performance.now();

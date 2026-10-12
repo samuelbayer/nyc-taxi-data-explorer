@@ -1,6 +1,7 @@
 # NYC Taxi Data Explorer
 
 A data explorer that shows 3.7 million NYC taxi trips from January 2026. All querying and filtering runs in the browser. No backend.
+First rows in ~15 s on Fast 4G (down from ~37 s).
 
 
 
@@ -13,7 +14,7 @@ A data explorer that shows 3.7 million NYC taxi trips from January 2026. All que
 ## Why This Is Hard
 
 Rendering 3.7M rows in a browser hits three limits at once: download size, the worker-page boundary, and DOM size.
-- **Download size**: A JSON with 3.7M rows would be much heavier than the Parquet (~480 MB as JSON vs ~25 MB as Parquet) and the browser would have to download it and parse it entirely in memory before showing anything.
+- **Download size**: A JSON with 3.7M rows would be much heavier than the Parquet (~480 MB as JSON vs ~25 MB as Parquet) and the browser would have to download it and parse it entirely in memory before showing anything. Even the 25 MB Parquet is too much to wait for before showing anything, which is what led to hybrid loading.
 - **Worker-page boundary**: The worker and the page don't share memory, so everything that the worker sends to the page is copied. In an early version sending the whole dataset took 17.2 s. Now it only sends the 500 rows that are going to be shown and the query takes 5-40 ms.
 - **DOM size**: 3.7M elements in the page would block it. Virtualization (TanStack Virtual) fixes this by rendering only the visible rows.
 
@@ -24,12 +25,17 @@ Rendering 3.7M rows in a browser hits three limits at once: download size, the w
 - **DuckDB-WASM:** An SQL engine that runs in the browser (WebAssembly). The filters become `WHERE` and each block of 500 rows a `LIMIT/OFFSET`, with a `COUNT(*)` with the same `WHERE` that gives the scrollbar the real total.
 - **Parquet:** Columnar and compressed: DuckDB only reads the columns the SQL query asks. It's also split into row groups with the minimum and maximum of each column, and because the file is sorted by date, DuckDB can skip entire groups.
 - **TanStack Virtual:** Renders only a few rows (20-30) even though there are 3.7M, in the DOM only those rows exist and a little margin while the scroll container keeps a scroll height for the full list (capped by the browser, see Known Limitations).
+- **Hybrid Loading:** 
+  - DuckDB opens the Parquet over HTTP range reads: the footer (~132 KB) plus only the row groups the first query needs (~520 KB in total).
+  - Once the first rows are shown, a Web Worker downloads the full file in the background, registers it in DuckDB and swaps the `trips` view to the in-memory copy.
+  - All queries go through `FROM trips`, so the switch is invisible to the UI.
+- **Filters while downloading:** disabled, with a progress percentage, because a filter over range reads costs ~55 s (it reads whole columns over hundreds of requests).
 
 ## Key Decisions
 
 - **Optimized Parquet:** Initially the Parquet file was 61 MB, so I reduced it to 25 MB: reduced from 20 columns to 7 key columns, amounts converted to cents, zstd compression and sorted by date.
 - **500-row blocks:** The rows are queried in fixed blocks while you scroll, so it only fires a query when you cross into a new block, instead of one per row scrolled.
-- **HTTP range reads, measured and not merged:** Letting DuckDB download only the byte ranges it needs. First visit load reduced from 37 s to 15 s, but cached revisits went from 2.3 to 5.8 s. Plan: hybrid load.
+- **Hybrid loading:** range reads were fast on first visits (37 s → 15 s) but slower on repeat visits, so I combined them with a background full download.
 - **Fixed row heights per breakpoint:** Measuring each row with `measureElement` was slow and left gaps when you scrolled fast. Every row has the same height per breakpoint (44 px on desktop, 360 px cards on mobile), so fixed sizes are faster and exact.
  
 ## Things I Got Wrong
@@ -40,7 +46,7 @@ Mistakes I made along the way and how I fixed them:
 
 ## Known Limitations
 
-- **Slow first load:** Before seeing any row the entire Parquet (25 MB) needs to be downloaded and the DuckDB engine (7 MB). With Fast 4G the first visit takes around 37 seconds, after that it only takes around 2 seconds thanks to the cache.
+- **First-visit load time:** Filters need the full 25 MB Parquet, and everything needs the 7 MB DuckDB engine. ~15 s to the first rows and ~26 s until filters are available (Fast 4G, no cache). About 10 s of it is the DuckDB-WASM engine itself. Repeat visits: ~3–4 s. On a typical broadband connection the engine and data download in a few seconds.
 - **Scrollbar reach:** Chrome limits the height of an element to about 33.5 million pixels, so scrolling to the bottom only reaches row 760,000 on desktop (93,000 on mobile). With filters the total amount is less and can be shown fully.
 - **Deep pagination with filters:** With `LIMIT`/`OFFSET` DuckDB has to go through all of the previous rows that match the filter criteria. Without filters it takes around 45 ms at any depth, with a fare filter it takes about 21 ms near the top and around 250 ms to go to the bottom at row 760k.
 - **Accessibility:** Lighthouse accessibility: 100. The virtual table still isn't exposed as a table to screen readers.
@@ -66,7 +72,6 @@ pnpm test    # run the unit tests
 
 ## Roadmap
 
-- **Hybrid loading:** Takes a small portion using HTTP range reads of the Parquet that is shown first, and the full download in the background and cached. That way you don't have to wait until all the Parquet downloads to see some rows.
 - **Scaled scrolling + keyset pagination:** Make the scroll element able to reach all of the 3.7M rows and fix the slower queries with filters.
 - **Full accessibility:** Make the virtual table usable for screen readers and keyboard navigation.
 - **Extract effects into custom hooks:** Improve the architecture separating effects from TripsTable into custom hooks.
