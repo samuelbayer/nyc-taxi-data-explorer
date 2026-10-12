@@ -68,7 +68,7 @@ export const duckDBService = {
     if (!registering) {
       registering = (async () => {
         if (await this.isCached(relativePath)) {
-          await this.loadFullFile(relativePath, () => {});
+          await this.loadFullFile(`${relativePath}?full`, () => {});
           return;
         }
         await activeDb.registerFileURL(
@@ -155,7 +155,7 @@ export const duckDBService = {
   },
   async isCached(relativePath: string): Promise<boolean> {
     try {
-      const response = await fetch(relativePath, {
+      const response = await fetch(`${relativePath}?full`, {
         cache: "only-if-cached",
         mode: "same-origin",
       });
