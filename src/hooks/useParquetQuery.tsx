@@ -15,8 +15,11 @@ const parquetUrl = "/trips3.parquet";
 // Size of public/trips3.parquet; update it if the file is regenerated.
 const PARQUET_SIZE = 25_877_062;
 
-
-export default function useParquetQuery(filters: Filters, setDownloadProgress: React.Dispatch<React.SetStateAction<number | null>>, setIsFullFileReady: React.Dispatch<React.SetStateAction<boolean>>): {
+export default function useParquetQuery(
+  filters: Filters,
+  setDownloadProgress: React.Dispatch<React.SetStateAction<number | null>>,
+  setIsFullFileReady: React.Dispatch<React.SetStateAction<boolean>>,
+): {
   trips: { tripsArr: TaxiTrip[]; range: number[] };
   loading: boolean;
   error: string | null;
@@ -35,7 +38,7 @@ export default function useParquetQuery(filters: Filters, setDownloadProgress: R
   const [totalCount, setTotalCount] = useState<number>(0);
   const [queryMs, setQueryMs] = useState<number | null>(null);
   const [phase, setPhase] = useState<Phase>("engine");
-  const alreadyDownloadedRef = useRef(false)
+  const alreadyDownloadedRef = useRef(false);
 
   const where = useMemo(() => buildWhere(filters), [filters]);
 
@@ -79,13 +82,21 @@ export default function useParquetQuery(filters: Filters, setDownloadProgress: R
   }, []);
 
   useEffect(() => {
-    if (phase !== 'ready' || alreadyDownloadedRef.current) return
-    dbService.loadFullFile(parquetUrl, comlink.proxy((loaded) => setDownloadProgress(Math.round((loaded / PARQUET_SIZE) * 100)))).then(() => setIsFullFileReady(true)).catch((error) => {
-      console.error(error)
-      setIsFullFileReady(true)
-    })
-    alreadyDownloadedRef.current = true
-  }, [phase, setDownloadProgress, setIsFullFileReady])
+    if (phase !== "ready" || alreadyDownloadedRef.current) return;
+    dbService
+      .loadFullFile(
+        parquetUrl,
+        comlink.proxy((loaded) =>
+          setDownloadProgress(Math.round((loaded / PARQUET_SIZE) * 100)),
+        ),
+      )
+      .then(() => setIsFullFileReady(true))
+      .catch((error) => {
+        console.error(error);
+        setIsFullFileReady(true);
+      });
+    alreadyDownloadedRef.current = true;
+  }, [phase, setDownloadProgress, setIsFullFileReady]);
 
   useEffect(() => {
     let cancelled = false;

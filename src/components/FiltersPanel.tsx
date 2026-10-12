@@ -6,12 +6,12 @@ export function FiltersPanel({
   filters,
   setFilters,
   downloadProgress,
-  isFullFileReady
+  isFullFileReady,
 }: {
   filters: Filters;
   setFilters: React.Dispatch<React.SetStateAction<Filters>>;
-  downloadProgress: number | null
-  isFullFileReady: boolean
+  downloadProgress: number | null;
+  isFullFileReady: boolean;
 }) {
   return (
     <div className="flex flex-col gap-6 text-left">
@@ -123,7 +123,14 @@ export function FiltersPanel({
           ariaLabelForHandle={["Minimum distance", "Maximum distance"]}
         />
       </div>
-      {!isFullFileReady ? <p>Filters available when the full dataset finishes loading ({downloadProgress}%)</p> : ''}
+      {!isFullFileReady ? (
+        <p>
+          Filters available when the full dataset finishes loading (
+          {downloadProgress}%)
+        </p>
+      ) : (
+        ""
+      )}
     </div>
   );
 }

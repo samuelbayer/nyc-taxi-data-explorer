@@ -3,6 +3,7 @@ import * as duckdb from "@duckdb/duckdb-wasm";
 
 let db: duckdb.AsyncDuckDB | null = null;
 let initPromise: Promise<void> | null = null;
+let fullFilePromise: Promise<void> | null = null;
 
 const loadingFiles = new Map<string, Promise<void>>();
 
@@ -109,39 +110,44 @@ export const duckDBService = {
     relativePath: string,
     onProgress: (loaded: number) => void,
   ): Promise<void> {
-    if (!db) await this.init();
-    const activeDb = db!;
+    if (fullFilePromise) return fullFilePromise;
 
-    const response = await fetch(relativePath);
-    const reader = response.body!.getReader();
+    fullFilePromise = (async () => {
+      if (!db) await this.init();
+      const activeDb = db!;
 
-    const chunks: Uint8Array[] = [];
-    let loaded = 0;
+      const response = await fetch(relativePath);
+      const reader = response.body!.getReader();
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
-      loaded += value.length;
-      onProgress(loaded);
-    }
-    let offset = 0;
+      const chunks: Uint8Array[] = [];
+      let loaded = 0;
 
-    const bytes = new Uint8Array(loaded);
-    for (const chunk of chunks) {
-      bytes.set(chunk, offset);
-      offset += chunk.length;
-    }
-    await activeDb.registerFileBuffer("trips_full.parquet", bytes);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        loaded += value.length;
+        onProgress(loaded);
+      }
+      let offset = 0;
 
-    const conn = await activeDb.connect();
-    try {
-      await conn.query(
-        `CREATE OR REPLACE VIEW trips AS SELECT * FROM 'trips_full.parquet'`,
-      );
-    } finally {
-      await conn.close();
-    }
+      const bytes = new Uint8Array(loaded);
+      for (const chunk of chunks) {
+        bytes.set(chunk, offset);
+        offset += chunk.length;
+      }
+      await activeDb.registerFileBuffer("trips_full.parquet", bytes);
+
+      const conn = await activeDb.connect();
+      try {
+        await conn.query(
+          `CREATE OR REPLACE VIEW trips AS SELECT * FROM 'trips_full.parquet'`,
+        );
+      } finally {
+        await conn.close();
+      }
+    })();
+    return fullFilePromise;
   },
 };
 
