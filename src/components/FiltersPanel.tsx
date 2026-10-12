@@ -17,6 +17,7 @@ export function FiltersPanel({
     <div className="flex flex-col gap-6 text-left">
       <div className="flex items-center gap-2">
         <input
+          disabled={!isFullFileReady}
           id="hide-negative-amounts"
           type="checkbox"
           checked={filters.hideNegativeFare}
@@ -35,6 +36,7 @@ export function FiltersPanel({
           Min. fare: ${filters.fareAmount}
         </label>
         <input
+          disabled={!isFullFileReady}
           type="range"
           id="payment-range"
           min="0"
@@ -56,6 +58,7 @@ export function FiltersPanel({
           Payment type
         </label>
         <select
+          disabled={!isFullFileReady}
           id="type-payment"
           value={filters.paymentType}
           onChange={(e) =>
@@ -83,6 +86,7 @@ export function FiltersPanel({
           {filters.passengerNumber === 0 ? "Any" : filters.passengerNumber}
         </label>
         <input
+          disabled={!isFullFileReady}
           type="range"
           id="number-passengers"
           min="0"
@@ -108,6 +112,7 @@ export function FiltersPanel({
           mi
         </label>
         <Slider
+          disabled={!isFullFileReady}
           range
           id="miles-range"
           value={filters.milesDistance}
@@ -118,7 +123,7 @@ export function FiltersPanel({
           ariaLabelForHandle={["Minimum distance", "Maximum distance"]}
         />
       </div>
-      {!isFullFileReady ? <p>{downloadProgress}</p> : <p>{isFullFileReady ? 'true' : 'false'}</p>}
+      {!isFullFileReady ? <p>Filters available when the full dataset finishes loading ({downloadProgress}%)</p> : ''}
     </div>
   );
 }

@@ -11,7 +11,10 @@ const worker = new Worker(new URL("../workers/db.worker.ts", import.meta.url), {
 const dbService = comlink.wrap<DuckDBService>(worker);
 const parquetUrl = "/trips3.parquet";
 
+// Vercel serves the Parquet with brotli, so there is no Content-Length.
+// Size of public/trips3.parquet; update it if the file is regenerated.
 const PARQUET_SIZE = 25_877_062;
+
 
 export default function useParquetQuery(filters: Filters, setDownloadProgress: React.Dispatch<React.SetStateAction<number | null>>, setIsFullFileReady: React.Dispatch<React.SetStateAction<boolean>>): {
   trips: { tripsArr: TaxiTrip[]; range: number[] };
@@ -77,7 +80,10 @@ export default function useParquetQuery(filters: Filters, setDownloadProgress: R
 
   useEffect(() => {
     if (phase !== 'ready' || alreadyDownloadedRef.current) return
-    dbService.loadFullFile(parquetUrl, comlink.proxy((loaded) => setDownloadProgress(Math.round((loaded / PARQUET_SIZE) * 100)))).then(() => setIsFullFileReady(true))
+    dbService.loadFullFile(parquetUrl, comlink.proxy((loaded) => setDownloadProgress(Math.round((loaded / PARQUET_SIZE) * 100)))).then(() => setIsFullFileReady(true)).catch((error) => {
+      console.error(error)
+      setIsFullFileReady(true)
+    })
     alreadyDownloadedRef.current = true
   }, [phase, setDownloadProgress, setIsFullFileReady])
 

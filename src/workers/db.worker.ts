@@ -107,13 +107,12 @@ export const duckDBService = {
 
   async loadFullFile(
     relativePath: string,
-    onProgress: (loaded: number, total: number) => void,
+    onProgress: (loaded: number) => void,
   ): Promise<void> {
     if (!db) await this.init();
     const activeDb = db!;
 
     const response = await fetch(relativePath);
-    const total = Number(response.headers.get("Content-Length"));
     const reader = response.body!.getReader();
 
     const chunks: Uint8Array[] = [];
@@ -124,7 +123,7 @@ export const duckDBService = {
       if (done) break;
       chunks.push(value);
       loaded += value.length;
-      onProgress(loaded, total);
+      onProgress(loaded);
     }
     let offset = 0;
 
