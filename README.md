@@ -1,7 +1,7 @@
 # NYC Taxi Data Explorer
 
 A data explorer that shows 3.7 million NYC taxi trips from January 2026. All querying and filtering runs in the browser. No backend.
-First rows in ~15 s on Fast 4G (down from ~37 s).
+First rows in ~3.4 s on broadband and ~15 s on Fast 4G (down from ~37 s).
 
 
 
@@ -46,7 +46,7 @@ Mistakes I made along the way and how I fixed them:
 
 ## Known Limitations
 
-- **First-visit load time:** Filters need the full 25 MB Parquet, and everything needs the 7 MB DuckDB engine. ~15 s to the first rows and ~26 s until filters are available (Fast 4G, no cache). About 10 s of it is the DuckDB-WASM engine itself. Repeat visits: ~3–4 s. On a typical broadband connection the engine and data download in a few seconds.
+- **First-visit load time:** Filters need the full 25 MB Parquet, and everything needs the 7 MB DuckDB engine. ~15 s to the first rows and ~26 s until filters are available (Fast 4G, no cache). About 10 s of it is the DuckDB-WASM engine itself. Repeat visits: ~3–4 s (Fast 4G). Without throttling (home broadband): ~3.4 s to the first rows, ~2 s on repeat visits.
 - **Scrollbar reach:** Chrome limits the height of an element to about 33.5 million pixels, so scrolling to the bottom only reaches row 760,000 on desktop (93,000 on mobile). With filters the total amount is less and can be shown fully.
 - **Deep pagination with filters:** With `LIMIT`/`OFFSET` DuckDB has to go through all of the previous rows that match the filter criteria. Without filters it takes around 45 ms at any depth, with a fare filter it takes about 21 ms near the top and around 250 ms to go to the bottom at row 760k.
 - **Accessibility:** Lighthouse accessibility: 100. The virtual table still isn't exposed as a table to screen readers.
