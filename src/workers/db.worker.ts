@@ -116,7 +116,7 @@ export const duckDBService = {
       if (!db) await this.init();
       const activeDb = db!;
 
-      const response = await fetch(relativePath);
+      const response = await fetch(`${relativePath}?full`);
       const reader = response.body!.getReader();
 
       const chunks: Uint8Array[] = [];
