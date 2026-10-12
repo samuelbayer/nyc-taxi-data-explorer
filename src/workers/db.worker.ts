@@ -115,7 +115,9 @@ export const duckDBService = {
     fullFilePromise = (async () => {
       if (!db) await this.init();
       const activeDb = db!;
-
+      // "?full" keeps this full (brotli-compressed) download in its own HTTP cache
+      // entry. Sharing the URL with DuckDB's range requests breaks repeat visits:
+      // the browser answers a Range request with the cached full file.
       const response = await fetch(`${relativePath}?full`);
       const reader = response.body!.getReader();
 
