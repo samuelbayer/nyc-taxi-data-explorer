@@ -10,11 +10,13 @@ import { StatusBar } from "./StatusBar.tsx";
 import { CARD_HEIGHT, TripCard } from "./TripCard.tsx";
 import { TripRow } from "./TripRow.tsx";
 import { VirtualRow } from "./VirtualRow.tsx";
+import { Pagination } from "./Pagination.tsx";
 
 const BLOCK_SIZE = 500;
 // Must match Tailwind's `xl` breakpoint (80rem = 1280px), used by the row/card classes.
 // Below it the 8-column grid no longer fits next to the filters panel.
 export const MOBILE_BREAKPOINT = 1280;
+export const PAGE_SIZE = 50000;
 
 type Props = {
   filtersDebounced: Filters;
@@ -29,12 +31,16 @@ export const TripsTable: React.FC<Props> = ({
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [prevFilters, setPrevFilters] = useState(filtersDebounced);
+  const [page, setPage] = useState(0);
   const { error, loading, trips, totalCount, setIndexRange, queryMs, phase } =
     useParquetQuery(filtersDebounced, setDownloadProgress, setIsFullFileReady);
+  const pageStart = page * PAGE_SIZE;
+  const pageRowCount = Math.max(0, Math.min(PAGE_SIZE, totalCount - pageStart));
 
   if (filtersDebounced !== prevFilters) {
     setPrevFilters(filtersDebounced);
     setIndexRange([0, BLOCK_SIZE - 1]);
+    setPage(0)
   }
 
   useEffect(() => {
@@ -42,7 +48,7 @@ export const TripsTable: React.FC<Props> = ({
   }, [filtersDebounced]);
 
   const virtualizer = useVirtualizer({
-    count: totalCount,
+    count: pageRowCount,
     estimateSize: () =>
       window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
     getScrollElement: () => scrollRef.current,
@@ -70,8 +76,8 @@ export const TripsTable: React.FC<Props> = ({
   useEffect(() => {
     if (virtualItems.length === 0) return;
 
-    const start = Math.floor(firstIndex / BLOCK_SIZE) * BLOCK_SIZE;
-    const end = Math.ceil((lastIndex + 1) / BLOCK_SIZE) * BLOCK_SIZE - 1;
+    const start = Math.floor(firstIndex / BLOCK_SIZE) * BLOCK_SIZE + pageStart;
+    const end = Math.ceil((lastIndex + 1) / BLOCK_SIZE) * BLOCK_SIZE - 1 + pageStart;
 
     const handler = setTimeout(() => {
       setIndexRange((prev) => {
@@ -84,23 +90,33 @@ export const TripsTable: React.FC<Props> = ({
     return () => {
       clearTimeout(handler);
     };
-  }, [firstIndex, lastIndex, virtualItems.length, setIndexRange]);
+  }, [firstIndex, lastIndex, virtualItems.length, setIndexRange, pageStart]);
+
+  const onPageChange = (newPage: number) => {
+    setPage(newPage)
+    scrollRef.current?.scrollTo({ top: 0 })
+    setIndexRange([newPage * PAGE_SIZE, newPage * PAGE_SIZE + BLOCK_SIZE - 1])
+  }
+  const pageCount = Math.ceil(totalCount / PAGE_SIZE)
 
   return (
-    <>
-      <StatusBar
-        totalCount={totalCount}
-        firstIndex={firstIndex}
-        lastIndex={lastIndex}
-        queryMs={queryMs}
-        error={error}
-        loading={loading}
-        tripsArrLength={trips.tripsArr.length}
-        phase={phase}
-      />
+    <div className="flex flex-col">
+      <div className="order-1">
+        <StatusBar
+          totalCount={totalCount}
+          firstIndex={firstIndex}
+          lastIndex={lastIndex}
+          queryMs={queryMs}
+          error={error}
+          loading={loading}
+          tripsArrLength={trips.tripsArr.length}
+          phase={phase}
+          pageStart={pageStart}
+        />
+      </div>
       <div
         ref={scrollRef}
-        className="h-[85dvh] w-full mx-auto overflow-auto [scrollbar-gutter:stable]"
+        className="h-[85dvh] w-full mx-auto overflow-auto [scrollbar-gutter:stable] order-3"
       >
         <div
           style={TRIP_GRID_STYLE}
@@ -118,21 +134,21 @@ export const TripsTable: React.FC<Props> = ({
         >
           {loading && totalCount === 0
             ? Array.from({ length: 23 }).map((_, i) => (
-                <div
-                  key={i}
-                  style={{
-                    height:
-                      window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
-                  }}
-                  className="xl:border-b border-slate-900"
-                >
-                  <RowSkeleton index={i} />
-                </div>
-              ))
+              <div
+                key={i}
+                style={{
+                  height:
+                    window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
+                }}
+                className="xl:border-b border-slate-900"
+              >
+                <RowSkeleton index={i} />
+              </div>
+            ))
             : null}
           {!error &&
             virtualItems.map((vItem) => {
-              const trip = trips.tripsArr[vItem.index - trips.range[0]];
+              const trip = trips.tripsArr[(vItem.index + pageStart) - trips.range[0]];
 
               if (!trip) {
                 return (
@@ -159,6 +175,9 @@ export const TripsTable: React.FC<Props> = ({
             })}
         </div>
       </div>
-    </>
+      <div className="order-2 xl:order-4">
+        {pageCount > 1 && <Pagination page={page} pageCount={pageCount} onPageChange={onPageChange} />}
+      </div>
+    </div>
   );
 };
