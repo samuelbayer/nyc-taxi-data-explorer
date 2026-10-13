@@ -17,6 +17,7 @@ export function StatusBar({
   loading,
   tripsArrLength,
   phase,
+  pageStart
 }: {
   totalCount: number;
   firstIndex: number;
@@ -26,6 +27,7 @@ export function StatusBar({
   loading: boolean;
   tripsArrLength: number;
   phase: Phase;
+  pageStart: number
 }) {
   const [seconds, setSeconds] = useState(0);
 
@@ -52,8 +54,8 @@ export function StatusBar({
     <h2 className="hidden md:block">No trips match these filters</h2>
   ) : (
     <h2 className="hidden md:block">
-      Showing rows {formatInteger(firstIndex + 1)} to{" "}
-      {formatInteger(lastIndex + 1)} of <i> {formatInteger(totalCount)}</i> in{" "}
+      Showing rows {formatInteger(firstIndex + 1 + pageStart)} to{" "}
+      {formatInteger(lastIndex + 1 + pageStart)} of <i> {formatInteger(totalCount)}</i> in{" "}
       {formatInteger(queryMs as number)}ms
     </h2>
   );

@@ -24,7 +24,7 @@ Rendering 3.7M rows in a browser hits three limits at once: download size, the w
 - **Web worker + Comlink:** Allows the browser to execute the SQL queries (DuckDB) in another thread without freezing the interface. Comlink allows calling the worker as if they were normal async functions.
 - **DuckDB-WASM:** An SQL engine that runs in the browser (WebAssembly). The filters become `WHERE` and each block of 500 rows a `LIMIT/OFFSET`, with a `COUNT(*)` with the same `WHERE` that gives the scrollbar the real total.
 - **Parquet:** Columnar and compressed: DuckDB only reads the columns the SQL query asks. It's also split into row groups with the minimum and maximum of each column, and because the file is sorted by date, DuckDB can skip entire groups.
-- **TanStack Virtual:** Renders only a few rows (20-30) even though there are 3.7M, in the DOM only those rows exist and a little margin while the scroll container keeps a scroll height for the full list (capped by the browser, see Known Limitations).
+- **TanStack Virtual:** Renders only a few rows (20-30) even though there are 3.7M, in the DOM only those rows exist and a little margin while the scroll container keeps a scroll height for the 50k rows of the current page.
 - **Hybrid Loading:** 
   - DuckDB opens the Parquet over HTTP range reads: the footer (~132 KB) plus only the row groups the first query needs (~520 KB in total).
   - Once the first rows are shown, a Web Worker downloads the full file in the background, registers it in DuckDB and swaps the `trips` view to the in-memory copy.
@@ -37,6 +37,7 @@ Rendering 3.7M rows in a browser hits three limits at once: download size, the w
 - **500-row blocks:** The rows are queried in fixed blocks while you scroll, so it only fires a query when you cross into a new block, instead of one per row scrolled.
 - **Hybrid loading:** range reads were fast on first visits (37 s → 15 s) but slower on repeat visits, so I combined them with a background full download.
 - **Fixed row heights per breakpoint:** Measuring each row with `measureElement` was slow and left gaps when you scrolled fast. Every row has the same height per breakpoint (44 px on desktop, 360 px cards on mobile), so fixed sizes are faster and exact.
+- **Pagination in 50k-row pages:** Chrome limits the height of an element to about 33.5 million pixels, so scrolling to the bottom only reached row 760,000 (33.5M px ÷ 44 px ≈ 760k) on desktop (93,000 on mobile). So I decided to implement pagination to be able to go through all the trips with 50k-row pages. I used 50k rows because it would fit in mobile since it's less than 93k. With bigger pages the scroll bar loses precision since a small movement is hundreds of rows. I considered scaled scrolling but chose pagination because each pixel of the scrollbar would cover many rows, and it’s more complex and fragile. Pagination is widely known and easy to use.
  
 ## Things I Got Wrong
 
@@ -47,8 +48,7 @@ Mistakes I made along the way and how I fixed them:
 ## Known Limitations
 
 - **First-visit load time:** Filters need the full 25 MB Parquet, and everything needs the 7 MB DuckDB engine. ~15 s to the first rows and ~26 s until filters are available (Fast 4G, no cache). About 10 s of it is the DuckDB-WASM engine itself. Repeat visits: ~3–4 s (Fast 4G). Without throttling (home broadband): ~3.4 s to the first rows, ~2 s on repeat visits.
-- **Scrollbar reach:** Chrome limits the height of an element to about 33.5 million pixels, so scrolling to the bottom only reaches row 760,000 on desktop (93,000 on mobile). With filters the total amount is less and can be shown fully.
-- **Deep pagination with filters:** With `LIMIT`/`OFFSET` DuckDB has to go through all of the previous rows that match the filter criteria. Without filters it takes around 45 ms at any depth, with a fare filter it takes about 21 ms near the top and around 250 ms to go to the bottom at row 760k.
+- **Deep pagination with filters:** With `LIMIT`/`OFFSET` DuckDB has to go through all of the previous rows that match the filter criteria. Without filters it takes around 45 ms at any depth, with a fare filter it takes about 21 ms near the top and around 250 ms to go to the last page.
 - **Accessibility:** Lighthouse accessibility: 100. The virtual table still isn't exposed as a table to screen readers.
 - **Outliers in the data:** There are some distances up to 269,097 miles. I left them like that to show the original dataset.  
 
@@ -72,6 +72,6 @@ pnpm test    # run the unit tests
 
 ## Roadmap
 
-- **Scaled scrolling + keyset pagination:** Make the scroll element able to reach all of the 3.7M rows and fix the slower queries with filters.
+- **Keyset pagination:** Make deep pages with filters as fast as the first ones by replacing OFFSET.
 - **Full accessibility:** Make the virtual table usable for screen readers and keyboard navigation.
 - **Extract effects into custom hooks:** Improve the architecture separating effects from TripsTable into custom hooks.
