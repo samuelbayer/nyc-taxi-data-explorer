@@ -100,7 +100,7 @@ export const TripsTable: React.FC<Props> = ({
   const pageCount = Math.ceil(totalCount / PAGE_SIZE)
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col md:h-full">
       <div className="order-1 m-1 md:m-0">
         <StatusBar
           totalCount={totalCount}
@@ -116,7 +116,7 @@ export const TripsTable: React.FC<Props> = ({
       </div>
       <div
         ref={scrollRef}
-        className="h-[85dvh] w-full mx-auto overflow-auto [scrollbar-gutter:stable] order-3"
+        className="h-[85dvh] md:h-auto md:flex-1 md:min-h-0 w-full mx-auto overflow-auto [scrollbar-gutter:stable] order-3"
       >
         <div
           style={TRIP_GRID_STYLE}
@@ -175,7 +175,7 @@ export const TripsTable: React.FC<Props> = ({
             })}
         </div>
       </div>
-      <div className="order-2 xl:order-4">
+      <div className="h-14 order-2 xl:order-4 border-b xl:border-b-0 xl:border-t flex flex-col justify-center border-slate-700">
         {pageCount > 1 && <Pagination page={page} pageCount={pageCount} onPageChange={onPageChange} />}
       </div>
     </div>

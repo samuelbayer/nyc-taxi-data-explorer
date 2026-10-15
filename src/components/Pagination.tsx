@@ -5,11 +5,11 @@ const BUTTON_CLASS = "cursor-pointer py-1 px-2 rounded min-w-10 text-center tabu
 export function Pagination({ page, pageCount, onPageChange }: { page: number, pageCount: number, onPageChange: (page: number) => void }) {
   const pageNumbers = getPageNumbers(page, pageCount)
   return (
-    <div className="flex gap-2 justify-center border-b pb-2 xl:border-b-0 xl:border-t xl:pt-3 border-slate-700">
+    <div className="flex gap-2 justify-center items-center">
       <button className={`${BUTTON_CLASS} aria-label="Previous page" disabled:opacity-40 disabled:cursor-not-allowed text-slate-400`} disabled={page === 0} onClick={() => onPageChange(page - 1)}>
         ← <span className="hidden xl:inline">Prev</span>
       </button>
-      <div className="flex gap-2 justify-center p-2 xl:hidden items-center">
+      <div className="flex gap-2 justify-center items-center p-2 xl:hidden">
         <select name="page" value={page} className="bg-slate-900 border border-slate-700 rounded p-2" aria-label="Page" onChange={(e) => onPageChange(Number(e.target.value))}>
           {[...Array(pageCount).keys()].map((n, index) => {
             return <option key={index} value={n}>{n + 1}</option>

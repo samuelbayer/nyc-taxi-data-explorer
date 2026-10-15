@@ -19,9 +19,9 @@ function App() {
 
   return (
     <>
-      <div className="min-h-screen bg-slate-950 px-6 py-3 text-white">
+      <div className="min-h-screen md:h-dvh flex flex-col bg-slate-950 px-6 py-3 text-white">
         <h1 className="xl:text-4xl text-3xl font-bold mb-8">NYC Taxi Data Explorer</h1>
-        <div className="flex flex-col md:flex-row gap-6 ">
+        <div className="flex flex-col md:flex-row gap-6 md:flex-1 md:min-h-0">
           <aside className="w-full shrink-0 md:w-72">
             <FiltersPanel
               filters={filters}
@@ -30,7 +30,7 @@ function App() {
               isFullFileReady={isFullFileReady}
             />
           </aside>
-          <main className="flex-1 min-w-0">
+          <main className="flex-1 min-w-0 md:h-full">
             <TripsTable
               filtersDebounced={filtersDebounced}
               setDownloadProgress={setDownloadProgress}
