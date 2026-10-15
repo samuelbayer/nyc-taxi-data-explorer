@@ -101,7 +101,7 @@ export const TripsTable: React.FC<Props> = ({
 
   return (
     <div className="flex flex-col">
-      <div className="order-1">
+      <div className="order-1 m-1 md:m-0">
         <StatusBar
           totalCount={totalCount}
           firstIndex={firstIndex}
