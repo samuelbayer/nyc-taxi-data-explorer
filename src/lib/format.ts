@@ -55,7 +55,7 @@ export function formatTypePayment(type: number | null): string {
   return "N/A";
 }
 
-export function formatPassengerNumber(passengers: number): string {
+export function formatPassengerNumber(passengers: number | null): string {
   if (passengers === null) return "—";
   const stringified = String(passengers);
   return stringified;
