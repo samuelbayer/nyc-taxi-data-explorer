@@ -3,8 +3,6 @@
 A data explorer that shows 3.7 million NYC taxi trips from January 2026. All querying and filtering runs in the browser. No backend.
 First rows in ~3.4 s on broadband and ~15 s on Fast 4G (down from ~37 s).
 
-
-
 **[Live demo →](https://nyc-taxi-data-explorer.vercel.app/)**
 
 ## Example GIF
@@ -18,11 +16,10 @@ Rendering 3.7M rows in a browser hits three limits at once: download size, the w
 - **Worker-page boundary**: The worker and the page don't share memory, so everything that the worker sends to the page is copied. In an early version sending the whole dataset took 17.2 s. Now it only sends the 500 rows that are going to be shown and the query takes 5-40 ms.
 - **DOM size**: 3.7M elements in the page would block it. Virtualization (TanStack Virtual) fixes this by rendering only the visible rows.
 
-
 ## How It Works
 
 - **Web worker + Comlink:** Allows the browser to execute the SQL queries (DuckDB) in another thread without freezing the interface. Comlink allows calling the worker as if they were normal async functions.
-- **DuckDB-WASM:** An SQL engine that runs in the browser (WebAssembly). The filters become `WHERE` and each block of 500 rows a `LIMIT/OFFSET`, with a `COUNT(*)` with the same `WHERE` that gives the scrollbar the real total.
+- **DuckDB-WASM:** An SQL engine that runs in the browser (WebAssembly). The filters become `WHERE` and each block of 500 rows a `LIMIT/OFFSET`, with a `COUNT(*)` with the same `WHERE` that gives the pagination the real total.
 - **Parquet:** Columnar and compressed: DuckDB only reads the columns the SQL query asks. It's also split into row groups with the minimum and maximum of each column, and because the file is sorted by date, DuckDB can skip entire groups.
 - **TanStack Virtual:** Renders only a few rows (20-30) even though there are 3.7M, in the DOM only those rows exist and a little margin while the scroll container keeps a scroll height for the 50k rows of the current page.
 - **Hybrid Loading:** 
@@ -37,7 +34,8 @@ Rendering 3.7M rows in a browser hits three limits at once: download size, the w
 - **500-row blocks:** The rows are queried in fixed blocks while you scroll, so it only fires a query when you cross into a new block, instead of one per row scrolled.
 - **Hybrid loading:** range reads were fast on first visits (37 s → 15 s) but slower on repeat visits, so I combined them with a background full download.
 - **Fixed row heights per breakpoint:** Measuring each row with `measureElement` was slow and left gaps when you scrolled fast. Every row has the same height per breakpoint (44 px on desktop, 360 px cards on mobile), so fixed sizes are faster and exact.
-- **Pagination in 50k-row pages:** Chrome limits the height of an element to about 33.5 million pixels, so scrolling to the bottom only reached row 760,000 (33.5M px ÷ 44 px ≈ 760k) on desktop (93,000 on mobile). So I decided to implement pagination to be able to go through all the trips with 50k-row pages. I used 50k rows because it would fit in mobile since it's less than 93k. With bigger pages the scroll bar loses precision since a small movement is hundreds of rows. I considered scaled scrolling but chose pagination because each pixel of the scrollbar would cover many rows, and it’s more complex and fragile. Pagination is widely known and easy to use.
+- **Pagination in 50k-row pages:** Chrome limits the height of an element to about 33.5 million pixels, so scrolling to the bottom only reached row 760,000 (33.5M px ÷ 44 px ≈ 760k) on desktop (93,000 on mobile). I used 50k rows because it would fit in mobile since it's less than 93k rows. With bigger pages the scroll bar loses precision since a small movement is hundreds of rows. I considered scaled scrolling but chose pagination because each pixel of the scrollbar would cover many rows, and it’s more complex and fragile. Pagination is widely known and easy to use.
+- **Fixed-width page navigation:** I implemented the pagination with a fixed set of 7 slots and a Prev and Next button. That way it keeps the same width on every page, so you can click any number without the pagination moving under the cursor. If there are fewer than 7 pages, it shows all of them. Also the `...` never hides a single page: if there is only one page between it and the last or first page it will show the number. The logic is a pure function `getPageNumbers` with unit tests. On mobile only the Prev and Next buttons remain and the numbers are replaced with a `<select>` because 7 buttons don't usually fit on a 360px mobile screen.
  
 ## Things I Got Wrong
 
