@@ -1,5 +1,7 @@
 # NYC Taxi Data Explorer
 
+[![CI](https://github.com/samuelbayer/nyc-taxi-data-explorer/actions/workflows/ci.yml/badge.svg)](https://github.com/samuelbayer/nyc-taxi-data-explorer/actions/workflows/ci.yml)
+
 A data explorer that shows 3.7 million NYC taxi trips from January 2026. All querying and filtering runs in the browser. No backend.
 First rows in ~3.4 s on broadband and ~15 s on Fast 4G (down from ~37 s).
 
