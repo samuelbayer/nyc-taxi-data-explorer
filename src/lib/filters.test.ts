@@ -1,31 +1,22 @@
 import { describe, it, expect } from "vitest";
-import { ALL_PAYMENT_TYPES, buildWhere, MAX_MILES_DISTANCE } from "./filters";
-import type { Filters } from "../types";
-
-const testFilter: Filters = {
-  fareAmount: 0,
-  milesDistance: [0, MAX_MILES_DISTANCE],
-  paymentType: ALL_PAYMENT_TYPES,
-  passengerNumber: 0,
-  hideNegativeFare: false,
-};
+import {buildWhere, countActiveFilters, DEFAULT_FILTERS, MAX_MILES_DISTANCE } from "./filters";
 
 describe("buildWhere", () => {
   it("returns an empty string with default filters", () => {
-    const result = buildWhere(testFilter);
+    const result = buildWhere(DEFAULT_FILTERS);
     expect(result).toBe("");
   });
   it("returns a minimum fare condition", () => {
-    const result = buildWhere({ ...testFilter, fareAmount: 50 });
+    const result = buildWhere({ ...DEFAULT_FILTERS, fareAmount: 50 });
     expect(result).toBe("WHERE fare_cents >= 5000");
   });
   it("returns a condition to hide negative amounts", () => {
-    const result = buildWhere({ ...testFilter, hideNegativeFare: true });
+    const result = buildWhere({ ...DEFAULT_FILTERS, hideNegativeFare: true });
     expect(result).toBe("WHERE fare_cents >= 0");
   });
   it("returns a minimum miles distance condition with min and max", () => {
     const result = buildWhere({
-      ...testFilter,
+      ...DEFAULT_FILTERS,
       milesDistance: [15, 450],
     });
     expect(result).toBe(
@@ -34,24 +25,24 @@ describe("buildWhere", () => {
   });
   it("returns a minimum miles condition with only min", () => {
     const result = buildWhere({
-      ...testFilter,
+      ...DEFAULT_FILTERS,
       milesDistance: [30, MAX_MILES_DISTANCE],
     });
     expect(result).toBe("WHERE distance_cent >= 3000");
   });
   it("returns a minimum miles condition with only max", () => {
     const result = buildWhere({
-      ...testFilter,
+      ...DEFAULT_FILTERS,
       milesDistance: [0, 120],
     });
     expect(result).toBe("WHERE distance_cent <= 12000");
   });
   it("returns a payment type condition", () => {
-    const result = buildWhere({ ...testFilter, paymentType: 1 });
+    const result = buildWhere({ ...DEFAULT_FILTERS, paymentType: 1 });
     expect(result).toBe("WHERE payment_type = 1");
   });
   it("returns a condition based on the number of passengers", () => {
-    const result = buildWhere({ ...testFilter, passengerNumber: 4 });
+    const result = buildWhere({ ...DEFAULT_FILTERS, passengerNumber: 4 });
     expect(result).toBe("WHERE passengers >= 4");
   });
   it("returns a string with all the conditions", () => {
@@ -67,3 +58,22 @@ describe("buildWhere", () => {
     );
   });
 });
+
+describe('countActiveFilters', () => {
+ it('returns 0 when there are no filters applied', () => {
+  const result = countActiveFilters({...DEFAULT_FILTERS})
+  expect(result).toBe(0)
+ })
+  it('returns the numbers of filters applied', () => {
+  const result = countActiveFilters({...DEFAULT_FILTERS, fareAmount: 45, passengerNumber: 3, paymentType: 2})
+  expect(result).toBe(3)
+ })
+ it('returns 1 when only the min of milesDistance has been changed ', () => {
+  const result = countActiveFilters({...DEFAULT_FILTERS, milesDistance: [15,500]})
+  expect(result).toBe(1)
+ })
+ it('returns 1 when the hideNegativeFare filter is applied', () => {
+  const result = countActiveFilters({...DEFAULT_FILTERS, hideNegativeFare: true})
+  expect(result).toBe(1)
+ })
+})
