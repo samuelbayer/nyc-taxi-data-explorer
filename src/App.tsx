@@ -13,6 +13,7 @@ function App() {
     passengerNumber: 0,
     hideNegativeFare: false,
   });
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const filtersDebounced = useDebounce(filters, 300);
   const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
   const [isFullFileReady, setIsFullFileReady] = useState(false);
@@ -21,8 +22,11 @@ function App() {
     <>
       <div className="min-h-screen md:h-dvh flex flex-col bg-slate-950 px-6 py-3 text-white">
         <h1 className="xl:text-4xl text-3xl font-bold mb-8">NYC Taxi Data Explorer</h1>
+        <div className="flex mb-2 md:hidden">
+          <button aria-expanded={filtersOpen} aria-controls="filters-panel" onClick={() => setFiltersOpen(!filtersOpen)} className="bg-slate-900 border border-slate-700 text-slate-300 px-2 py-1 rounded">{filtersOpen ? 'Hide filters' : 'Show filters'}</button>
+        </div>
         <div className="flex flex-col md:flex-row gap-6 md:flex-1 md:min-h-0">
-          <aside className="w-full shrink-0 md:w-72">
+          <aside id='filters-panel' className={`${filtersOpen ? '' : 'hidden'} w-full shrink-0 md:w-72 md:block`}>
             <FiltersPanel
               filters={filters}
               setFilters={setFilters}
