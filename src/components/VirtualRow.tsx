@@ -9,6 +9,7 @@ type Props = {
 export function VirtualRow({ vItem, children, className = "" }: Props) {
   return (
     <div
+      role='row'
       className={`absolute top-0 left-0 w-full xl:border-b border-slate-900 ${className}`}
       style={{
         transform: `translateY(${vItem.start}px)`,

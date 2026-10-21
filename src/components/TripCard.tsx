@@ -8,7 +8,7 @@ export function TripCard({ trip }: { trip: TaxiTrip }) {
       <div className="h-full bg-slate-900 rounded-xl grid-cols-2 grid gap-6 p-4 border border-slate-800">
         {TRIP_COLUMNS.map((col) => {
           return (
-            <div key={col.key}>
+            <div role="cell" key={col.key}>
               <p className="text-xs uppercase tracking-wide text-slate-400  ">
                 {col.label}
               </p>
