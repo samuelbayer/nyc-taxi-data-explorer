@@ -115,20 +115,27 @@ export const TripsTable: React.FC<Props> = ({
         />
       </div>
       <div
+        aria-busy={loading}
+        aria-label="NYC taxi trips"
+        role='table'
+        aria-rowcount={totalCount + 1}
         ref={scrollRef}
         className="h-[85dvh] md:h-auto md:flex-1 md:min-h-0 w-full mx-auto overflow-auto [scrollbar-gutter:stable] order-3"
       >
         <div
+          aria-rowindex={1}
+          role="row"
           style={TRIP_GRID_STYLE}
           className="hidden will-change-transform text-xs uppercase tracking-wide text-slate-400 border-b border-slate-700 bg-slate-950 z-10 sticky top-0 xl:grid gap-4 2xl:gap-8 px-3 xl:px-4 py-4"
         >
           {TRIP_COLUMNS.map((col) => (
-            <div className={ALIGN_CLASS[col.align]} key={col.key}>
+            <div role='columnheader' className={ALIGN_CLASS[col.align]} key={col.key}>
               {col.label}
             </div>
           ))}
         </div>
         <div
+          role="rowgroup"
           className="relative w-full"
           style={{ height: `${virtualizer.getTotalSize()}px` }}
         >
@@ -149,10 +156,9 @@ export const TripsTable: React.FC<Props> = ({
           {!error &&
             virtualItems.map((vItem) => {
               const trip = trips.tripsArr[(vItem.index + pageStart) - trips.range[0]];
-
               if (!trip) {
                 return (
-                  <VirtualRow key={vItem.key} vItem={vItem}>
+                  <VirtualRow pageStart={pageStart} key={vItem.key} vItem={vItem}>
                     <RowSkeleton index={vItem.index} />
                   </VirtualRow>
                 );
@@ -160,6 +166,7 @@ export const TripsTable: React.FC<Props> = ({
 
               return (
                 <VirtualRow
+                  pageStart={pageStart}
                   key={vItem.key}
                   vItem={vItem}
                   className={
