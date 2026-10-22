@@ -50,7 +50,6 @@ Mistakes I made along the way and how I fixed them:
 
 - **First-visit load time:** Filters need the full 25 MB Parquet, and everything needs the 7 MB DuckDB engine. ~15 s to the first rows and ~26 s until filters are available (Fast 4G, no cache). About 10 s of it is the DuckDB-WASM engine itself. Repeat visits: ~3–4 s (Fast 4G). Without throttling (home broadband): ~3.4 s to the first rows, ~2 s on repeat visits.
 - **Deep pagination with filters:** With `LIMIT`/`OFFSET` DuckDB has to go through all of the previous rows that match the filter criteria. Without filters it takes around 45 ms at any depth, with a fare filter it takes about 21 ms near the top and around 250 ms to go to the last page.
-- **Accessibility:** Lighthouse accessibility: 100. The virtual table still isn't exposed as a table to screen readers.
 - **Outliers in the data:** There are some distances up to 269,097 miles. I left them like that to show the original dataset.  
 
 ## Tech Stack
@@ -74,5 +73,4 @@ pnpm test    # run the unit tests
 ## Roadmap
 
 - **Keyset pagination:** Make deep pages with filters as fast as the first ones by replacing OFFSET.
-- **Full accessibility:** Make the virtual table usable for screen readers and keyboard navigation.
-- **Extract effects into custom hooks:** Improve the architecture separating effects from TripsTable into custom hooks.
+- **Keyboard navigation:** Move between cells with arrow keys. Hard in a virtual table because the target row may not exist in the DOM yet.
