@@ -45,11 +45,15 @@ export function buildWhere(filters: Filters): string {
 }
 
 export function countActiveFilters(filters: Filters): number {
-  let counter = 0
-  if (filters.fareAmount !== DEFAULT_FILTERS.fareAmount) counter++
-  if (JSON.stringify(filters.milesDistance) !== JSON.stringify(DEFAULT_FILTERS.milesDistance)) counter++
-  if (filters.passengerNumber !== DEFAULT_FILTERS.passengerNumber) counter++
-  if(filters.paymentType !== DEFAULT_FILTERS.paymentType) counter++
-  if(filters.hideNegativeFare !== DEFAULT_FILTERS.hideNegativeFare) counter++
-  return counter
+  let counter = 0;
+  if (filters.fareAmount !== DEFAULT_FILTERS.fareAmount) counter++;
+  if (
+    JSON.stringify(filters.milesDistance) !==
+    JSON.stringify(DEFAULT_FILTERS.milesDistance)
+  )
+    counter++;
+  if (filters.passengerNumber !== DEFAULT_FILTERS.passengerNumber) counter++;
+  if (filters.paymentType !== DEFAULT_FILTERS.paymentType) counter++;
+  if (filters.hideNegativeFare !== DEFAULT_FILTERS.hideNegativeFare) counter++;
+  return counter;
 }

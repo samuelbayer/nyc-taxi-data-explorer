@@ -17,7 +17,7 @@ export function StatusBar({
   loading,
   tripsArrLength,
   phase,
-  pageStart
+  pageStart,
 }: {
   totalCount: number;
   firstIndex: number;
@@ -27,7 +27,7 @@ export function StatusBar({
   loading: boolean;
   tripsArrLength: number;
   phase: Phase;
-  pageStart: number
+  pageStart: number;
 }) {
   const [seconds, setSeconds] = useState(0);
 
@@ -56,7 +56,8 @@ export function StatusBar({
     <>
       <h2 className="hidden xl:block">
         Showing rows {formatInteger(firstIndex + 1 + pageStart)} to{" "}
-        {formatInteger(lastIndex + 1 + pageStart)} of <i> {formatInteger(totalCount)}</i> in{" "}
+        {formatInteger(lastIndex + 1 + pageStart)} of{" "}
+        <i> {formatInteger(totalCount)}</i> in{" "}
         {formatInteger(queryMs as number)}ms
       </h2>
       <h2 className="xl:hidden">

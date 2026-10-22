@@ -3,7 +3,9 @@ import { useEffect } from "react";
 import type { Virtualizer } from "@tanstack/react-virtual";
 import { MOBILE_BREAKPOINT } from "../lib/breakpoints";
 
-export function useBreakpointMeasure(virtualizer: Virtualizer<HTMLDivElement, Element>) {
+export function useBreakpointMeasure(
+  virtualizer: Virtualizer<HTMLDivElement, Element>,
+) {
   useEffect(() => {
     let isMobile = window.innerWidth < MOBILE_BREAKPOINT;
     const handleResize = () => {

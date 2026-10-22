@@ -4,13 +4,18 @@ type Props = {
   vItem: VirtualItem;
   children: React.ReactNode;
   className?: string;
-  pageStart: number
+  pageStart: number;
 };
 
-export function VirtualRow({ pageStart, vItem, children, className = "" }: Props) {
+export function VirtualRow({
+  pageStart,
+  vItem,
+  children,
+  className = "",
+}: Props) {
   return (
     <div
-      role='row'
+      role="row"
       aria-rowindex={vItem.index + 2 + pageStart}
       className={`absolute top-0 left-0 w-full xl:border-b border-slate-900 ${className}`}
       style={{

@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import {buildWhere, countActiveFilters, DEFAULT_FILTERS, MAX_MILES_DISTANCE } from "./filters";
+import {
+  buildWhere,
+  countActiveFilters,
+  DEFAULT_FILTERS,
+  MAX_MILES_DISTANCE,
+} from "./filters";
 
 describe("buildWhere", () => {
   it("returns an empty string with default filters", () => {
@@ -59,21 +64,32 @@ describe("buildWhere", () => {
   });
 });
 
-describe('countActiveFilters', () => {
- it('returns 0 when there are no filters applied', () => {
-  const result = countActiveFilters({...DEFAULT_FILTERS})
-  expect(result).toBe(0)
- })
-  it('returns the numbers of filters applied', () => {
-  const result = countActiveFilters({...DEFAULT_FILTERS, fareAmount: 45, passengerNumber: 3, paymentType: 2})
-  expect(result).toBe(3)
- })
- it('returns 1 when only the min of milesDistance has been changed ', () => {
-  const result = countActiveFilters({...DEFAULT_FILTERS, milesDistance: [15,500]})
-  expect(result).toBe(1)
- })
- it('returns 1 when the hideNegativeFare filter is applied', () => {
-  const result = countActiveFilters({...DEFAULT_FILTERS, hideNegativeFare: true})
-  expect(result).toBe(1)
- })
-})
+describe("countActiveFilters", () => {
+  it("returns 0 when there are no filters applied", () => {
+    const result = countActiveFilters({ ...DEFAULT_FILTERS });
+    expect(result).toBe(0);
+  });
+  it("returns the numbers of filters applied", () => {
+    const result = countActiveFilters({
+      ...DEFAULT_FILTERS,
+      fareAmount: 45,
+      passengerNumber: 3,
+      paymentType: 2,
+    });
+    expect(result).toBe(3);
+  });
+  it("returns 1 when only the min of milesDistance has been changed ", () => {
+    const result = countActiveFilters({
+      ...DEFAULT_FILTERS,
+      milesDistance: [15, 500],
+    });
+    expect(result).toBe(1);
+  });
+  it("returns 1 when the hideNegativeFare filter is applied", () => {
+    const result = countActiveFilters({
+      ...DEFAULT_FILTERS,
+      hideNegativeFare: true,
+    });
+    expect(result).toBe(1);
+  });
+});
