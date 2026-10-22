@@ -11,11 +11,11 @@ import { CARD_HEIGHT, TripCard } from "./TripCard.tsx";
 import { TripRow } from "./TripRow.tsx";
 import { VirtualRow } from "./VirtualRow.tsx";
 import { Pagination } from "./Pagination.tsx";
+import { useBreakpointMeasure } from "../hooks/useBreakpointMeasure.ts";
+import { MOBILE_BREAKPOINT } from "../lib/breakpoints";
+import { BLOCK_SIZE } from "../lib/blockSize.ts";
+import { useBlockRange } from "../hooks/useBlockRange.ts";
 
-const BLOCK_SIZE = 500;
-// Must match Tailwind's `xl` breakpoint (80rem = 1280px), used by the row/card classes.
-// Below it the 8-column grid no longer fits next to the filters panel.
-export const MOBILE_BREAKPOINT = 1280;
 export const PAGE_SIZE = 50000;
 
 type Props = {
@@ -40,7 +40,7 @@ export const TripsTable: React.FC<Props> = ({
   if (filtersDebounced !== prevFilters) {
     setPrevFilters(filtersDebounced);
     setIndexRange([0, BLOCK_SIZE - 1]);
-    setPage(0)
+    setPage(0);
   }
 
   useEffect(() => {
@@ -55,49 +55,27 @@ export const TripsTable: React.FC<Props> = ({
     overscan: 10,
   });
 
-  useEffect(() => {
-    let isMobile = window.innerWidth < MOBILE_BREAKPOINT;
-    const handleResize = () => {
-      if (window.innerWidth < MOBILE_BREAKPOINT === isMobile) {
-        return;
-      }
-      isMobile = window.innerWidth < MOBILE_BREAKPOINT;
-      return virtualizer.measure();
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [virtualizer]);
+  useBreakpointMeasure(virtualizer);
 
   const virtualItems = virtualizer.getVirtualItems();
 
   const firstIndex = virtualItems[0]?.index ?? 0;
   const lastIndex = virtualItems[virtualItems.length - 1]?.index ?? 0;
 
-  useEffect(() => {
-    if (virtualItems.length === 0) return;
-
-    const start = Math.floor(firstIndex / BLOCK_SIZE) * BLOCK_SIZE + pageStart;
-    const end = Math.ceil((lastIndex + 1) / BLOCK_SIZE) * BLOCK_SIZE - 1 + pageStart;
-
-    const handler = setTimeout(() => {
-      setIndexRange((prev) => {
-        const [prevMin, prevMax] = prev;
-        if (prevMin === start && prevMax === end) return prev;
-        return [start, end];
-      });
-    }, 300);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [firstIndex, lastIndex, virtualItems.length, setIndexRange, pageStart]);
+  useBlockRange({
+    visibleCount: virtualItems.length,
+    setIndexRange,
+    pageStart,
+    firstIndex,
+    lastIndex,
+  });
 
   const onPageChange = (newPage: number) => {
-    setPage(newPage)
-    scrollRef.current?.scrollTo({ top: 0 })
-    setIndexRange([newPage * PAGE_SIZE, newPage * PAGE_SIZE + BLOCK_SIZE - 1])
-  }
-  const pageCount = Math.ceil(totalCount / PAGE_SIZE)
+    setPage(newPage);
+    scrollRef.current?.scrollTo({ top: 0 });
+    setIndexRange([newPage * PAGE_SIZE, newPage * PAGE_SIZE + BLOCK_SIZE - 1]);
+  };
+  const pageCount = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
     <div className="flex flex-col md:h-full">
@@ -117,7 +95,7 @@ export const TripsTable: React.FC<Props> = ({
       <div
         aria-busy={loading}
         aria-label="NYC taxi trips"
-        role='table'
+        role="table"
         aria-rowcount={totalCount + 1}
         ref={scrollRef}
         className="h-[85dvh] md:h-auto md:flex-1 md:min-h-0 w-full mx-auto overflow-auto [scrollbar-gutter:stable] order-3"
@@ -129,7 +107,11 @@ export const TripsTable: React.FC<Props> = ({
           className="hidden will-change-transform text-xs uppercase tracking-wide text-slate-400 border-b border-slate-700 bg-slate-950 z-10 sticky top-0 xl:grid gap-4 2xl:gap-8 px-3 xl:px-4 py-4"
         >
           {TRIP_COLUMNS.map((col) => (
-            <div role='columnheader' className={ALIGN_CLASS[col.align]} key={col.key}>
+            <div
+              role="columnheader"
+              className={ALIGN_CLASS[col.align]}
+              key={col.key}
+            >
               {col.label}
             </div>
           ))}
@@ -141,24 +123,29 @@ export const TripsTable: React.FC<Props> = ({
         >
           {loading && totalCount === 0
             ? Array.from({ length: 23 }).map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  height:
-                    window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
-                }}
-                className="xl:border-b border-slate-900"
-              >
-                <RowSkeleton index={i} />
-              </div>
-            ))
+                <div
+                  key={i}
+                  style={{
+                    height:
+                      window.innerWidth < MOBILE_BREAKPOINT ? CARD_HEIGHT : 44,
+                  }}
+                  className="xl:border-b border-slate-900"
+                >
+                  <RowSkeleton index={i} />
+                </div>
+              ))
             : null}
           {!error &&
             virtualItems.map((vItem) => {
-              const trip = trips.tripsArr[(vItem.index + pageStart) - trips.range[0]];
+              const trip =
+                trips.tripsArr[vItem.index + pageStart - trips.range[0]];
               if (!trip) {
                 return (
-                  <VirtualRow pageStart={pageStart} key={vItem.key} vItem={vItem}>
+                  <VirtualRow
+                    pageStart={pageStart}
+                    key={vItem.key}
+                    vItem={vItem}
+                  >
                     <RowSkeleton index={vItem.index} />
                   </VirtualRow>
                 );
@@ -183,7 +170,13 @@ export const TripsTable: React.FC<Props> = ({
         </div>
       </div>
       <div className="h-14 order-2 xl:order-4 border-b xl:border-b-0 xl:border-t flex flex-col justify-center border-slate-700">
-        {pageCount > 1 && <Pagination page={page} pageCount={pageCount} onPageChange={onPageChange} />}
+        {pageCount > 1 && (
+          <Pagination
+            page={page}
+            pageCount={pageCount}
+            onPageChange={onPageChange}
+          />
+        )}
       </div>
     </div>
   );
