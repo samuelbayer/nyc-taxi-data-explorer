@@ -13,8 +13,10 @@ import { VirtualRow } from "./VirtualRow.tsx";
 import { Pagination } from "./Pagination.tsx";
 import { useBreakpointMeasure } from "../hooks/useBreakpointMeasure.ts";
 import { MOBILE_BREAKPOINT } from "../lib/breakpoints";
+import { BLOCK_SIZE } from "../lib/blockSize.ts";
+import { useBlockRange } from "../hooks/useBlockRange.ts";
 
-const BLOCK_SIZE = 500;
+
 export const PAGE_SIZE = 50000;
 
 type Props = {
@@ -61,24 +63,7 @@ export const TripsTable: React.FC<Props> = ({
   const firstIndex = virtualItems[0]?.index ?? 0;
   const lastIndex = virtualItems[virtualItems.length - 1]?.index ?? 0;
 
-  useEffect(() => {
-    if (virtualItems.length === 0) return;
-
-    const start = Math.floor(firstIndex / BLOCK_SIZE) * BLOCK_SIZE + pageStart;
-    const end = Math.ceil((lastIndex + 1) / BLOCK_SIZE) * BLOCK_SIZE - 1 + pageStart;
-
-    const handler = setTimeout(() => {
-      setIndexRange((prev) => {
-        const [prevMin, prevMax] = prev;
-        if (prevMin === start && prevMax === end) return prev;
-        return [start, end];
-      });
-    }, 300);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [firstIndex, lastIndex, virtualItems.length, setIndexRange, pageStart]);
+  useBlockRange({ visibleCount: virtualItems.length, setIndexRange, pageStart, firstIndex, lastIndex });
 
   const onPageChange = (newPage: number) => {
     setPage(newPage)
