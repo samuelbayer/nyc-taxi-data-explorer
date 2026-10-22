@@ -11,11 +11,10 @@ import { CARD_HEIGHT, TripCard } from "./TripCard.tsx";
 import { TripRow } from "./TripRow.tsx";
 import { VirtualRow } from "./VirtualRow.tsx";
 import { Pagination } from "./Pagination.tsx";
+import { useBreakpointMeasure } from "../hooks/useBreakpointMeasure.ts";
+import { MOBILE_BREAKPOINT } from "../lib/breakpoints";
 
 const BLOCK_SIZE = 500;
-// Must match Tailwind's `xl` breakpoint (80rem = 1280px), used by the row/card classes.
-// Below it the 8-column grid no longer fits next to the filters panel.
-export const MOBILE_BREAKPOINT = 1280;
 export const PAGE_SIZE = 50000;
 
 type Props = {
@@ -55,18 +54,7 @@ export const TripsTable: React.FC<Props> = ({
     overscan: 10,
   });
 
-  useEffect(() => {
-    let isMobile = window.innerWidth < MOBILE_BREAKPOINT;
-    const handleResize = () => {
-      if (window.innerWidth < MOBILE_BREAKPOINT === isMobile) {
-        return;
-      }
-      isMobile = window.innerWidth < MOBILE_BREAKPOINT;
-      return virtualizer.measure();
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [virtualizer]);
+  useBreakpointMeasure(virtualizer)
 
   const virtualItems = virtualizer.getVirtualItems();
 
